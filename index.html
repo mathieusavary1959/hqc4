@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pionniers+4 — Quiz Master Bonus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050505;
+      --accent: #e50914; 
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      background: rgba(10, 10, 10, 0.98);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+    .logo { font-weight: 900; font-size: 1.4rem; text-transform: uppercase; letter-spacing: -1px; }
+    .logo span { color: var(--accent); transition: color 0.4s; }
+    
+    .tabs { display: flex; gap: 40px; }
+    .tab {
+      color: #666;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 10px 0;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      transition: color 0.3s ease, transform 0.2s ease;
+    }
+    .tab:hover { color: #aaa; transform: translateY(-2px); }
+    .tab[aria-selected="true"] { color: #fff; }
+    .tab[aria-selected="true"]::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0; width: 100%; height: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 15px var(--accent);
+    }
+    .iframe-container { flex: 1; position: relative; background: #000; }
+    iframe { width: 100%; height: 100%; border: none; transition: opacity 0.5s ease; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">PIONNIERS+4 <span>BONUS</span></div>
+    <nav class="tabs">
+      <button class="tab" data-tab="musique" aria-selected="true">Musique</button>
+      <button class="tab" data-tab="evenements">Événements</button>
+    </nav>
+  </header>
+  <div class="iframe-container">
+    <iframe id="mainFrame" src="musique.html"></iframe>
+  </div>
+  <script>
+    const frame = document.getElementById("mainFrame");
+    const tabs = document.querySelectorAll(".tab");
+    const logoSpan = document.querySelector(".logo span");
+    tabs.forEach(t => {
+      t.addEventListener("click", () => {
+        tabs.forEach(btn => btn.setAttribute("aria-selected", "false"));
+        t.setAttribute("aria-selected", "true");
+        const isMusique = t.dataset.tab === 'musique';
+        const accent = isMusique ? '#e50914' : '#22c55e';
+        document.documentElement.style.setProperty('--accent', accent);
+        logoSpan.style.color = accent;
+        frame.style.opacity = "0";
+        setTimeout(() => {
+          frame.src = t.dataset.tab + ".html";
+          frame.onload = () => frame.style.opacity = "1";
+        }, 200);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrono Hasard - 160 Événements</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #ffd700; --bg: #111; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #000; color: #fff; height: 100vh;
+      display: flex; flex-direction: column;
+      padding: 20px 40px 110px 40px; overflow: hidden; position: relative;
+    }
+
+    /* Arrière-plan Dés / Cube Hasard */
+    body::before {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: 
+        radial-gradient(circle at center, transparent, #000),
+        url('https://www.transparenttextures.com/patterns/cubes.png');
+      z-index: -1; opacity: 0.25; animation: pan 100s linear infinite;
+    }
+    @keyframes pan { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+    .header-area { margin-bottom: 15px; flex-shrink: 0; }
+    .cat-label { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; }
+    .cat-title { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; }
+
+    .view-container { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* TOUJOURS 4 SUR UNE LIGNE */
+      gap: 25px; width: 100%; max-width: 1400px;
+    }
+    
+    #answerGrid { position: absolute; opacity: 0; pointer-events: none; transform: translateY(30px); transition: 0.6s; }
+    body.reveal #gameGrid { opacity: 0; pointer-events: none; transform: translateY(-30px); }
+    body.reveal #answerGrid { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    .card {
+      background: #1a1a1a; border-radius: 12px; overflow: hidden;
+      display: flex; flex-direction: column; position: relative;
+      cursor: pointer; transition: 0.4s; border: 2px solid #333;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .card:hover { transform: translateY(-10px); border-color: var(--accent); }
+    
+    .img-container { width: 100%; aspect-ratio: 16/10; background: #000; overflow: hidden; }
+    .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+    .card:hover img { transform: scale(1.1); }
+    
+    /* VISIBILITÉ TEXTE AMÉLIORÉE */
+    .card-info { 
+      padding: 15px; 
+      background: #222; 
+      min-height: 100px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      text-align: center;
+      border-top: 2px solid #333;
+    }
+    .card b { font-size: 0.9rem; line-height: 1.4; color: #eee; font-weight: 500; }
+
+    .year-tag {
+      position: absolute; top: 15px; right: 15px; background: var(--accent); color: #000;
+      padding: 5px 15px; border-radius: 6px; font-weight: 900; font-size: 1.2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    .nav-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 100px;
+      display: flex; align-items: center; justify-content: center; gap: 30px;
+      background: rgba(0,0,0,0.9); border-top: 1px solid #444;
+    }
+    .btn-side { background: #333; color: #fff; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; }
+    .btn-main { background: var(--accent); color: #000; border: none; padding: 15px 60px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="header-area">
+    <div class="cat-label" id="catLabel">DOSSIER #1</div>
+    <div class="cat-title" id="catTitle">Chargement...</div>
+  </div>
+
+  <div class="view-container">
+    <div id="gameGrid" class="grid"></div>
+    <div id="answerGrid" class="grid"></div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn-side" onclick="prev()">PRÉCÉDENT</button>
+    <button class="btn-main" id="btnToggle" onclick="toggle()">VÉRIFIER</button>
+    <button class="btn-side" onclick="next()">SUIVANT</button>
+  </div>
+
+  <script>
+    const BLOCKS = [
+      { name: "Histoire du Québec", items: [{n:"Samuel de Champlain fonde Québec", y:1608, w:"Québec"}, {n:"Bataille des Plaines d'Abraham", y:1759, w:"Bataille des Plaines d'Abraham"}, {n:"Élection de Jean Lesage (Révolution tranquille)", y:1960, w:"Révolution tranquille"}, {n:"Crise d'Octobre (Mesures de guerre)", y:1970, w:"Crise d'Octobre"}] },
+      { name: "Politique Québécoise", items: [{n:"Fondation du Parti Québécois", y:1968, w:"Parti Québécois"}, {n:"1er référendum sur la souveraineté", y:1980, w:"Référendum québécois de 1980"}, {n:"Adoption de la Loi 101", y:1977, w:"Loi 101"}, {n:"2e référendum (Défaite du OUI)", y:1995, w:"Référendum québécois de 1995"}] },
+      { name: "Sports au Québec", items: [{n:"1re Coupe Stanley du Canadien", y:1916, w:"Canadiens de Montréal"}, {n:"2 médailles d'or (Gaétan Boucher)", y:1984, w:"Gaétan Boucher"}, {n:"Dernier match des Expos à Montréal", y:2004, w:"Expos de Montréal"}, {n:"Finale de Wimbledon pour E. Bouchard", y:2014, w:"Eugenie Bouchard"}] },
+      { name: "Personnalités du Québec", items: [{n:"Naissance de Céline Dion", y:1968, w:"Céline Dion"}, {n:"50 buts en 50 matchs de Maurice Richard", y:1945, w:"Maurice Richard"}, {n:"Succès de Félix Leclerc à Paris", y:1950, w:"Félix Leclerc"}, {n:"Marc Garneau dans l'espace", y:1984, w:"Marc Garneau"}] },
+      { name: "Musique Québécoise", items: [{n:"Gilles Vigneault : Mon Pays", y:1964, w:"Mon Pays"}, {n:"Céline Dion gagne l'Eurovision", y:1988, w:"Concours Eurovision de la chanson 1988"}, {n:"1er Festival d'été de Québec", y:1967, w:"Festival d'été de Québec"}, {n:"Album Break Syndical (Cowboys Fringants)", y:2002, w:"Les Cowboys Fringants"}] },
+      { name: "Cinéma du Québec", items: [{n:"Fondation de l'ONF", y:1939, w:"Office national du film du Canada"}, {n:"Mon Oncle Antoine de Claude Jutra", y:1971, w:"Mon oncle Antoine"}, {n:"Oscar pour Les Invasions Barbares", y:2004, w:"Les Invasions barbares"}, {n:"C.R.A.Z.Y. de Jean-Marc Vallée", y:2005, w:"C.R.A.Z.Y."}] },
+      { name: "Télévision du Québec", items: [{n:"Lancement de la TV de Radio-Canada", y:1952, w:"ICI Radio-Canada Télé"}, {n:"1er épisode de La Famille Plouffe", y:1953, w:"La Famille Plouffe"}, {n:"Début des Belles Histoires", y:1956, w:"Les Belles Histoires des pays d'en haut"}, {n:"Virginie : Début de la série", y:1996, w:"Virginie (télésérie)"}] },
+      { name: "Tragédies au Québec", items: [{n:"La Crise du Verglas", y:1998, w:"Verglas massif de 1998"}, {n:"Tragédie ferroviaire de Lac-Mégantic", y:2013, w:"Accident ferroviaire de Lac-Mégantic"}, {n:"Effondrement du Viaduc de la Concorde", y:2006, w:"Viaduc de la Concorde"}, {n:"Inondations printanières historiques", y:2017, w:"Inondations printanières de 2017 au Québec"}] },
+      { name: "Grandes Inventions", items: [{n:"L'imprimerie de Gutenberg", y:1440, w:"Imprimerie"}, {n:"Machine à vapeur de James Watt", y:1769, w:"Machine à vapeur"}, {n:"Ampoule électrique de Thomas Edison", y:1879, w:"Lampe à incandescence"}, {n:"Le World Wide Web (Internet)", y:1989, w:"World Wide Web"}] },
+      { name: "Inventions Canadiennes", items: [{n:"Le téléphone d'Alexander G. Bell", y:1876, w:"Téléphone"}, {n:"Découverte de l'insuline", y:1921, w:"Insuline"}, {n:"Lancement du Canadarm", y:1981, w:"Canadarm"}, {n:"Combinaison de plongée (Bauer)", y:1952, w:"Combinaison de plongée"}] },
+      { name: "Conquête Spatiale", items: [{n:"Spoutnik 1 : 1er satellite", y:1957, w:"Spoutnik 1"}, {n:"Youri Gagarine : 1er homme en orbite", y:1961, w:"Youri Gagarine"}, {n:"Neil Armstrong marche sur la lune", y:1969, w:"Apollo 11"}, {n:"Télescope James Webb", y:2021, w:"James Webb Space Telescope"}] },
+      { name: "Progrès Médicaux", items: [{n:"Pasteurisation de Louis Pasteur", y:1857, w:"Louis Pasteur"}, {n:"Découverte de la pénicilline", y:1928, w:"Alexandre Fleming"}, {n:"Structure de l'ADN identifiée", y:1953, w:"Acide désoxyribonucléique"}, {n:"1re greffe cardiaque humaine", y:1967, w:"Christiaan Barnard"}] },
+      { name: "Ère Informatique", items: [{n:"ENIAC : 1er ordinateur électronique", y:1945, w:"ENIAC"}, {n:"Lancement du Macintosh", y:1984, w:"Macintosh"}, {n:"Lancement de Windows 95", y:1995, w:"Windows 95"}, {n:"Présentation du 1er iPhone", y:2007, w:"iPhone (1re génération)"}] },
+      { name: "Transports Modernes", items: [{n:"Locomotive à vapeur de Stephenson", y:1814, w:"Locomotive à vapeur"}, {n:"1er vol motorisé (Frères Wright)", y:1903, w:"Frères Wright"}, {n:"Inauguration du Métro de Montréal", y:1966, w:"Métro de Montréal"}, {n:"Lancement de la Tesla Model S", y:2012, w:"Tesla Model S"}] },
+      { name: "Cinéma de Légende", items: [{n:"Blanche-Neige (Disney)", y:1937, w:"Blanche-Neige et les Sept Nains"}, {n:"Star Wars : Un nouvel espoir", y:1977, w:"Star Wars (film)"}, {n:"Titanic : Succès planétaire", y:1997, w:"Titanic (film, 1997)"}, {n:"Avatar et la 3D", y:2009, w:"Avatar (film, 2009)"}] },
+      { name: "Événements TV mondiaux", items: [{n:"Alunissage (600M spectateurs)", y:1969, w:"Apollo 11"}, {n:"Lancement de MTV", y:1981, w:"MTV"}, {n:"Final de la série Friends", y:2004, w:"Friends"}, {n:"Prince Charles épouse Diana", y:1981, w:"Charles III"}] },
+      { name: "Culture Gaming", items: [{n:"Pong : Succès arcade (Atari)", y:1972, w:"Pong"}, {n:"Super Mario Bros. sur NES", y:1985, w:"Super Mario Bros."}, {n:"Lancement de la PlayStation 1", y:1994, w:"PlayStation (console)"}, {n:"Sortie officielle de Minecraft", y:2011, w:"Minecraft"}] },
+      { name: "Jeux & Loisirs", items: [{n:"Sortie du Monopoly", y:1935, w:"Monopoly"}, {n:"Invention du Cube Rubik", y:1974, w:"Rubik's Cube"}, {n:"Brique LEGO moderne brevetée", y:1958, w:"Lego"}, {n:"Sortie de Pokémon (Game Boy)", y:1996, w:"Pokémon"}] },
+      { name: "Mode & Société", items: [{n:"Coco Chanel : Tailleur célèbre", y:1925, w:"Coco Chanel"}, {n:"Le jean : Symbole rebelle", y:1955, w:"Jeans"}, {n:"Explosion du mouvement Punk", y:1976, w:"Mouvement punk"}, {n:"Sortie de la Air Jordan 1", y:1985, w:"Air Jordan"}] },
+      { name: "Publicité culte", items: [{n:"Création du logo Nike 'Swoosh'", y:1971, w:"Swoosh"}, {n:"Publicité '1984' d'Apple", y:1984, w:"1984 (publicité)"}, {n:"Campagne 'I'm Lovin' It' (McDo)", y:2003, w:"McDonald's"}, {n:"Succès de Old Spice (Viral)", y:2010, w:"Old Spice"}] },
+      { name: "Internet Social", items: [{n:"Lancement de Google", y:1998, w:"Google"}, {n:"Lancement de Facebook", y:2004, w:"Facebook"}, {n:"1re vidéo YouTube", y:2005, w:"YouTube"}, {n:"Fusion Musical.ly -> TikTok", y:2018, w:"TikTok"}] },
+      { name: "Comics & BD", items: [{n:"Apparition de Superman", y:1938, w:"Superman"}, {n:"Apparition de Spider-Man", y:1962, w:"Spider-Man"}, {n:"1er album d'Astérix", y:1959, w:"Astérix le Gaulois"}, {n:"The Dark Knight (Film)", y:2008, w:"The Dark Knight"}] },
+      { name: "Sports Olympiques", items: [{n:"1ers JO de l'ère moderne", y:1896, w:"Jeux olympiques d'été de 1896"}, {n:"10 parfait de Nadia Comaneci", y:1976, w:"Nadia Comăneci"}, {n:"Jesse Owens à Berlin", y:1936, w:"Jesse Owens"}, {n:"Usain Bolt à Pékin", y:2008, w:"Usain Bolt"}] },
+      { name: "Histoire du Hockey", items: [{n:"1er match organisé (intérieur)", y:1875, w:"Hockey sur glace"}, {n:"Création officielle de la LNH", y:1917, w:"Ligue nationale de hockey"}, {n:"Série du Siècle (Canada-URSS)", y:1972, w:"Série du siècle 1972"}, {n:"Or du Canada à Salt Lake City", y:2002, w:"Jeux olympiques d'hiver de 2002"}] },
+      { name: "Grands Super Bowls", items: [{n:"Le 1er Super Bowl (I)", y:1967, w:"Super Bowl I"}, {n:"Incident Janet Jackson", y:2004, w:"Super Bowl XXXVIII"}, {n:"7e titre de Tom Brady", y:2021, w:"Tom Brady"}, {n:"Spectacle de Beyoncé", y:2013, w:"Super Bowl XLVII"}] },
+      { name: "Soccer & Coupe du Monde", items: [{n:"1re Coupe du Monde (Uruguay)", y:1930, w:"Coupe du monde 1930"}, {n:"1er titre de Pelé (17 ans)", y:1958, w:"Pelé"}, {n:"But du siècle (Maradona)", y:1986, w:"Maradona"}, {n:"Lionel Messi soulève la Coupe", y:2022, w:"Lionel Messi"}] },
+      { name: "Action & Adrénaline", items: [{n:"Tony Hawk : Premier 900", y:1999, w:"Tony Hawk"}, {n:"Shaun White or à Turin", y:2006, w:"Shaun White"}, {n:"Saut de Felix Baumgartner", y:2012, w:"Felix Baumgartner"}, {n:"11e titre de Kelly Slater", y:2011, w:"Kelly Slater"}] },
+      { name: "Records de l'histoire", items: [{n:"Mile en moins de 4 min", y:1954, w:"Roger Bannister"}, {n:"8 médailles d'or (M. Phelps)", y:2008, w:"Michael Phelps"}, {n:"Gretzky bat le record de Howe", y:1994, w:"Wayne Gretzky"}, {n:"23e Grand Chelem (S. Williams)", y:2017, w:"Serena Williams"}] },
+      { name: "Grands Conflits", items: [{n:"Début 1re Guerre Mondiale", y:1914, w:"Première Guerre mondiale"}, {n:"Débarquement en Normandie", y:1944, w:"Débarquement de Normandie"}, {n:"Chute du Mur de Berlin", y:1989, w:"Mur de Berlin"}, {n:"Attentats du 11 septembre", y:2001, w:"Attentats du 11 septembre 2001"}] },
+      { name: "Droits Sociaux", items: [{n:"Rosa Parks refuse son siège", y:1955, w:"Rosa Parks"}, {n:"I Have a Dream (MLK)", y:1963, w:"Martin Luther King"}, {n:"Mai 68 en France", y:1968, w:"Mai 68"}, {n:"Mariage homosexuel (Canada)", y:2005, w:"Loi sur le mariage civil"}] },
+      { name: "L'Ère des Explorateurs", items: [{n:"Christophe Colomb (Bahamas)", y:1492, w:"Christophe Colomb"}, {n:"Expédition Magellan (Tour monde)", y:1522, w:"Fernand de Magellan"}, {n:"Amundsen au Pôle Sud", y:1911, w:"Roald Amundsen"}, {n:"Hillary au sommet de l'Everest", y:1953, w:"Edmund Hillary"}] },
+      { name: "Désastres de la Nature", items: [{n:"Explosion du Krakatoa", y:1883, w:"Krakatoa"}, {n:"Séisme en Haïti", y:2010, w:"Séisme de 2010 en Haïti"}, {n:"Tsunami Océan Indien", y:2004, w:"Tsunami de 2004"}, {n:"Ouragan Katrina", y:2005, w:"Ouragan Katrina"}] },
+      { name: "Chocs Historiques", items: [{n:"Assassinat de Kennedy", y:1963, w:"Assassinat de John F. Kennedy"}, {n:"Prise d'otages aux JO de Munich", y:1972, w:"Jeux olympiques de Munich 1972"}, {n:"Attentat d'Oklahoma City", y:1995, w:"Attentat d'Oklahoma City"}, {n:"Attentats du Bataclan (Paris)", y:2015, w:"Attentats du 13 novembre 2015"}] },
+      { name: "Bascules du Monde", items: [{n:"Chute de l'Empire Romain", y:476, w:"Chute de l'Empire romain"}, {n:"Prise de la Bastille", y:1789, w:"Prise de la Bastille"}, {n:"Effondrement de l'URSS", y:1991, w:"Dislocation de l'URSS"}, {n:"Printemps Arabe", y:2011, w:"Printemps arabe"}] },
+      { name: "Animaux Marquants", items: [{n:"Laïka envoyée en orbite", y:1957, w:"Laïka"}, {n:"Dolly : 1er mammifère cloné", y:1996, w:"Dolly (brebis)"}, {n:"Incident du gorille Harambe", y:2016, w:"Harambe"}, {n:"Keiko (Willy) retrouve liberté", y:1998, w:"Keiko (orque)"}] },
+      { name: "Nourriture & Gastronomie", items: [{n:"Invention du Coca-Cola", y:1886, w:"Coca-Cola"}, {n:"1er McDonald's franchisé", y:1955, w:"McDonald's"}, {n:"Chips Pringles en tube", y:1968, w:"Pringles"}, {n:"Invention de la poutine (Warwick)", y:1957, w:"Poutine (plat)"}] },
+      { name: "Architecture", items: [{n:"Inauguration de la Tour Eiffel", y:1889, w:"Tour Eiffel"}, {n:"Inauguration du Canal de Panama", y:1914, w:"Canal de Panama"}, {n:"Stade Olympique de Montréal", y:1976, w:"Stade olympique de Montréal"}, {n:"Inauguration du Burj Khalifa", y:2010, w:"Burj Khalifa"}] },
+      { name: "Scandales & Controverses", items: [{n:"Démission de Nixon (Watergate)", y:1974, w:"Scandale du Watergate"}, {n:"Ben Johnson disqualifié (Séoul)", y:1988, w:"Ben Johnson (athlète)"}, {n:"Scandale des commandites (CAN)", y:2002, w:"Scandale des commandites"}, {n:"Scandale Cambridge Analytica", y:2018, w:"Cambridge Analytica"}] },
+      { name: "Tendances Virales", items: [{n:"Ice Bucket Challenge", y:2014, w:"Ice Bucket Challenge"}, {n:"Mannequin Challenge", y:2016, w:"Mannequin Challenge"}, {n:"Succès de Pokémon GO", y:2016, w:"Pokémon Go"}, {n:"Débat sur 'La Robe'", y:2015, w:"The dress"}] },
+      { name: "Destins Croisés", items: [{n:"1969 — L'homme sur la lune", y:1969, w:"1969"}, {n:"1989 — Chute du Mur de Berlin", y:1989, w:"1989"}, {n:"2001 — Attaques 11 septembre", y:2001, w:"2001"}, {n:"2020 — Pandémie mondiale", y:2020, w:"Pandémie de Covid-19"}] }
+    ];
+
+    let idx = 0;
+
+    async function getWiki(w) {
+      try {
+        const r = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(w)}`);
+        const d = await r.json();
+        return d.thumbnail ? d.thumbnail.source : 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=400';
+      } catch(e) { return 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=400'; }
+    }
+
+    function createCard(item, showYear) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        ${showYear ? `<div class="year-tag">${item.y}</div>` : ''}
+        <div class="img-container"><img src="${item.img}"></div>
+        <div class="card-info"><b>${item.n}</b></div>
+      `;
+      return d;
+    }
+
+    async function render() {
+      const g = document.getElementById('gameGrid');
+      const ag = document.getElementById('answerGrid');
+      const b = BLOCKS[idx];
+      g.innerHTML = ag.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:100px;font-size:1.5rem;opacity:0.5'>Lancement des dés historiques...</div>";
+      document.getElementById('catTitle').textContent = b.name;
+      document.getElementById('catLabel').textContent = `DOSSIER #${idx+1} / 40`;
+      
+      const metas = await Promise.all(b.items.map(async item => { 
+        const img = await getWiki(item.w); 
+        return {...item, img}; 
+      }));
+
+      g.innerHTML = ""; metas.sort(()=>Math.random()-0.5).forEach(m => g.appendChild(createCard(m, false)));
+      ag.innerHTML = ""; metas.sort((a,b)=>a.y-b.y).forEach(m => ag.appendChild(createCard(m, true)));
+    }
+
+    function toggle() {
+      document.body.classList.toggle('reveal');
+      document.getElementById('btnToggle').textContent = document.body.classList.contains('reveal') ? "RETOUR" : "VÉRIFIER";
+    }
+
+    function next() { if(idx<BLOCKS.length-1){idx++; document.body.classList.remove('reveal'); render();} }
+    function prev() { if(idx>0){idx--; document.body.classList.remove('reveal'); render();} }
+    window.onload = render;
+  </script>
+</body>
+</html>
