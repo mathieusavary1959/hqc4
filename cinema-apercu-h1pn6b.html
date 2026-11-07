@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cinéma &amp; Hasard - Films québécois</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+
+    :root { --accent: #ffd700; --bg: #111; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #000; color: #fff; height: 100vh;
+      display: flex; flex-direction: column;
+      padding: 20px 40px 110px 40px; overflow: hidden; position: relative;
+    }
+
+    /* Arrière-plan Dés / Cube Hasard */
+    body::before {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background:
+        radial-gradient(circle at center, transparent, #000),
+        url('https://www.transparenttextures.com/patterns/cubes.png');
+      z-index: -1; opacity: 0.25; animation: pan 100s linear infinite;
+    }
+    @keyframes pan { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+    .header-area { margin-bottom: 15px; flex-shrink: 0; }
+    .cat-label { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; }
+    .cat-title { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; }
+
+    .view-container { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* TOUJOURS 4 SUR UNE LIGNE */
+      gap: 25px; width: 100%; max-width: 1400px;
+    }
+
+    #answerWrap { position: absolute; opacity: 0; pointer-events: none; transform: translateY(30px); transition: 0.6s; display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; }
+    body.reveal #gameGrid { opacity: 0; pointer-events: none; transform: translateY(-30px); }
+    body.reveal #answerWrap { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    .card {
+      background: #1a1a1a; border-radius: 12px; overflow: hidden;
+      display: flex; flex-direction: column; position: relative;
+      cursor: pointer; transition: 0.4s; border: 2px solid #333;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .card:hover { transform: translateY(-10px); border-color: var(--accent); }
+
+    .img-container { width: 100%; aspect-ratio: 16/10; background: #000; overflow: hidden; position: relative; }
+    .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+    .card:hover img { transform: scale(1.1); }
+
+    /* Zone lecteur vidéo : rapport cinéma 16/9 */
+    .ecran { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
+    .ecran .lecteur { position: absolute; inset: 0; }
+    .ecran .lecteur iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+    /* Masque du haut : cache la barre de titre YouTube ; les clics passent au centre */
+    .masque-haut {
+      position: absolute; top: 0; left: 0; right: 0; height: 54px;
+      background: #000; z-index: 3; pointer-events: none;
+    }
+    /* Bouclier de clics : la vidéo ne reçoit aucun clic direct */
+    .bouclier { position: absolute; inset: 0; z-index: 2; cursor: pointer; background: transparent; }
+
+    /* Voile de fin : couvre la vidéo dès que la bande-annonce se termine */
+    .voile-fin {
+      position: absolute; inset: 0; z-index: 6; background: #000;
+      display: none; align-items: center; justify-content: center;
+      color: var(--accent); font-weight: 900; letter-spacing: 3px;
+      text-transform: uppercase; font-size: 1rem; text-align: center; padding: 10px;
+    }
+    .voile-fin.on { display: flex; }
+
+    /* Invitation à cliquer : grand bouton de lecture au centre, tant que la séquence n'a pas démarré */
+    .invite {
+      position: absolute; inset: 0; z-index: 5; pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .invite .cercle {
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.85); background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .invite .tri {
+      width: 0; height: 0; margin-left: 7px;
+      border-left: 26px solid #fff;
+      border-top: 16px solid transparent;
+      border-bottom: 16px solid transparent;
+    }
+    .ecran.en-lecture .invite { display: none; }
+
+    .card-info {
+      padding: 15px;
+      background: #222;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-top: 2px solid #333;
+    }
+    .card b { font-size: 0.9rem; line-height: 1.4; color: #eee; font-weight: 500; }
+
+    /* Carte de jeu (séquence) : plus haute, pas cliquable en entier */
+    .film-card { cursor: default; }
+    .film-card:hover { transform: none; border-color: #333; }
+    .film-card .card-info { min-height: 64px; flex-direction: column; gap: 2px; }
+    .film-card .seq { color: var(--accent); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 0.95rem; }
+    .film-card .genre { color: #bbb; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Grille des réponses : une colonne par séquence, quatre choix par colonne */
+    #answerGrid {
+      grid-template-rows: repeat(4, auto);
+      grid-auto-flow: column;
+      align-content: center;
+    }
+    .answer-card { cursor: pointer; }
+    .answer-card .card-info { min-height: 66px; padding: 10px 12px; }
+    .answer-card b { font-size: 1.05rem; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+    .answer-card.bonne { border-color: #22c55e; box-shadow: 0 0 35px rgba(34,197,94,0.45); }
+    .answer-card.bonne b { color: #22c55e; }
+    .answer-card.fausse { opacity: 0.35; }
+
+    .bloc-rejouer { display: flex; justify-content: center; }
+    .btn-rejouer {
+      background: #333; color: #fff; border: 2px solid #555; padding: 12px 34px;
+      border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .btn-rejouer:hover { border-color: var(--accent); color: var(--accent); }
+
+    .nav-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 100px;
+      display: flex; align-items: center; justify-content: center; gap: 30px;
+      background: rgba(0,0,0,0.9); border-top: 1px solid #444; z-index: 10;
+    }
+    .btn-side { background: #333; color: #fff; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+    .btn-main { background: var(--accent); color: #000; border: none; padding: 15px 60px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-family: inherit; }
+
+  </style>
+</head>
+<body>
+
+  <div class="header-area">
+    <div class="cat-label" id="catLabel">SÉQUENCE #1</div>
+    <div class="cat-title" id="catTitle">Chargement...</div>
+  </div>
+
+  <div class="view-container">
+    <div id="gameGrid" class="grid"></div>
+    <div id="answerWrap">
+      <div id="answerGrid" class="grid"></div>
+      <div class="bloc-rejouer"><button class="btn-rejouer" onclick="rejouer()">Revoir les séquences</button></div>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn-side" onclick="prev()">PRÉCÉDENT</button>
+    <button class="btn-main" id="btnToggle" onclick="toggle()">VÉRIFIER</button>
+    <button class="btn-side" onclick="next()">SUIVANT</button>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const BLOCKS = [
+      { name: "Films québécois", items: [
+        { titre: "Les Boys", realisateur: "Louis Saia", genre: "Comédie de hockey", video: "OFl0fuIRl9A",
+          choix: ["Elvis Gratton", "Le Party", "Cruising Bar"] },
+        { titre: "Lance et compte", realisateur: "Frédérik d'Amours", genre: "Drame de hockey", video: "UaScNFjT6QE",
+          choix: ["Les Boys", "Goon", "Bon Cop Bad Cop"] },
+        { titre: "Bon Cop Bad Cop", realisateur: "Érik Canuel", genre: "Comédie policière", video: "bhNtnPEImAY",
+          choix: ["De père en flic", "Nitro", "Les Boys"] },
+        { titre: "C.R.A.Z.Y.", realisateur: "Jean-Marc Vallée", genre: "Drame familial", video: "N1Dvh3Xh_9k",
+          choix: ["Maurice Richard", "La Grande Séduction", "Incendies"] }
+      ] }
+    ];
+
+    let cur = 0;
+    const ytPlayers = {};
+    const doneFlags = {};
+    let ytReady = false;
+    window.onYouTubeIframeAPIReady = function () { ytReady = true; };
+
+    const gameGrid = document.getElementById('gameGrid');
+    const answerGrid = document.getElementById('answerGrid');
+    const catLabel = document.getElementById('catLabel');
+    const catTitle = document.getElementById('catTitle');
+    const btnToggle = document.getElementById('btnToggle');
+
+    function detruireLecteurs() {
+      Object.keys(ytPlayers).forEach(function (k) {
+        try { ytPlayers[k].destroy(); } catch (e) {}
+        delete ytPlayers[k];
+        delete doneFlags[k];
+      });
+    }
+
+    function render() {
+      detruireLecteurs();
+      document.body.classList.remove('reveal');
+      btnToggle.textContent = 'VÉRIFIER';
+      const bloc = BLOCKS[cur];
+      catLabel.textContent = 'SÉQUENCE #' + (cur + 1);
+      catTitle.textContent = bloc.name;
+
+      gameGrid.innerHTML = bloc.items.map(function (it, i) {
+        return '<div class="card film-card">' +
+          '<div class="ecran">' +
+            '<div class="lecteur" id="lecteur-' + i + '"></div>' +
+            '<div class="bouclier" data-i="' + i + '" title="Lancer la séquence"></div>' +
+            '<div class="masque-haut"></div>' +
+            '<div class="invite"><div class="cercle"><div class="tri"></div></div></div>' +
+            '<div class="voile-fin" id="voile-' + i + '">Fin de la séquence</div>' +
+          '</div>' +
+          '<div class="card-info"><span class="seq">Séquence nº ' + (i + 1) + '</span>' +
+          '<span class="genre">Bande-annonce à identifier</span></div>' +
+        '</div>';
+      }).join('');
+
+      const melange = bloc.items.map(function (it, i) {
+        const opts = it.choix.concat([it.titre]);
+        for (let j = opts.length - 1; j > 0; j--) {
+          const k = Math.floor(Math.random() * (j + 1));
+          const tmp = opts[j]; opts[j] = opts[k]; opts[k] = tmp;
+        }
+        return { film: i, opts: opts };
+      });
+      const lignes = [];
+      melange.forEach(function (m) {
+        m.opts.forEach(function (o) {
+          lignes.push('<div class="card answer-card" data-film="' + m.film + '" data-choix="' + o.replace(/"/g, '&quot;') + '">' +
+            '<div class="card-info"><b>' + o + '</b></div></div>');
+        });
+      });
+      answerGrid.innerHTML = lignes.join('');
+
+      gameGrid.querySelectorAll('.bouclier').forEach(function (b) {
+        b.addEventListener('click', function () { basculerLecture(parseInt(b.dataset.i, 10)); });
+      });
+      answerGrid.querySelectorAll('.answer-card').forEach(function (c) {
+        c.addEventListener('click', function () { choisir(c); });
+      });
+    }
+
+    function creerLecteur(i) {
+      const bloc = BLOCKS[cur];
+      ytPlayers[i] = new YT.Player('lecteur-' + i, {
+        videoId: bloc.items[i].video,
+        playerVars: { autoplay: 1, rel: 0, playsinline: 1, hl: 'fr' },
+        events: {
+          onStateChange: function (e) {
+            if (e.data === YT.PlayerState.ENDED) {
+              doneFlags[i] = true;
+              const v = document.getElementById('voile-' + i);
+              if (v) v.classList.add('on');
+            }
+          }
+        }
+      });
+    }
+
+    function lancer(i) {
+      const voile = document.getElementById('voile-' + i);
+      if (voile) voile.classList.remove('on');
+      const zone = document.getElementById('lecteur-' + i);
+      if (zone && zone.parentElement) zone.parentElement.classList.add('en-lecture');
+      if (ytPlayers[i]) {
+        ytPlayers[i].seekTo(0, true);
+        ytPlayers[i].playVideo();
+      } else if (ytReady) {
+        creerLecteur(i);
+      } else {
+        const attente = setInterval(function () {
+          if (ytReady) { clearInterval(attente); creerLecteur(i); }
+        }, 150);
+      }
+    }
+
+    function basculerLecture(i) {
+      const p = ytPlayers[i];
+      if (p && typeof p.getPlayerState === 'function') {
+        const etat = p.getPlayerState();
+        const zone = document.getElementById('lecteur-' + i);
+        if (etat === YT.PlayerState.PLAYING) {
+          p.pauseVideo();
+          if (zone && zone.parentElement) zone.parentElement.classList.remove('en-lecture');
+          return;
+        }
+        if (etat === YT.PlayerState.PAUSED) {
+          if (doneFlags[i]) { lancer(i); } else { p.playVideo(); if (zone && zone.parentElement) zone.parentElement.classList.add('en-lecture'); }
+          return;
+        }
+      }
+      lancer(i);
+    }
+
+    function choisir(carte) {
+      const bloc = BLOCKS[cur];
+      const film = parseInt(carte.dataset.film, 10);
+      const bon = bloc.items[film].titre;
+      answerGrid.querySelectorAll('.answer-card').forEach(function (c) {
+        if (parseInt(c.dataset.film, 10) === film) {
+          if (c.dataset.choix === bon) c.classList.add('bonne');
+          else if (c === carte) c.classList.add('fausse');
+        }
+      });
+    }
+
+    function arreterTout() {
+      Object.keys(ytPlayers).forEach(function (k) {
+        try { ytPlayers[k].pauseVideo(); } catch (e) {}
+      });
+    }
+
+    function toggle() {
+      const ouvert = document.body.classList.toggle('reveal');
+      btnToggle.textContent = ouvert ? 'RETOUR' : 'VÉRIFIER';
+      if (ouvert) arreterTout();
+    }
+
+    function rejouer() {
+      document.body.classList.remove('reveal');
+      btnToggle.textContent = 'VÉRIFIER';
+    }
+
+    function next() { cur = (cur + 1) % BLOCKS.length; render(); }
+    function prev() { cur = (cur - 1 + BLOCKS.length) % BLOCKS.length; render(); }
+
+    render();
+  </script>
+
+</body>
+</html>
