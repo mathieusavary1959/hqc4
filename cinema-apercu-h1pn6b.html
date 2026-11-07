@@ -35,12 +35,18 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* TOUJOURS 4 SUR UNE LIGNE */
+      grid-template-columns: repeat(4, 1fr);
       gap: 25px; width: 100%; max-width: 1400px;
     }
 
+    /* Zone de jeu : grand écran cinéma + rangée des séquences */
+    #gameArea {
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      width: 100%; transition: 0.6s;
+    }
+    body.reveal #gameArea { opacity: 0; pointer-events: none; transform: translateY(-30px); }
+
     #answerWrap { position: absolute; opacity: 0; pointer-events: none; transform: translateY(30px); transition: 0.6s; display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; }
-    body.reveal #gameGrid { opacity: 0; pointer-events: none; transform: translateY(-30px); }
     body.reveal #answerWrap { opacity: 1; pointer-events: auto; transform: translateY(0); }
 
     .card {
@@ -51,18 +57,22 @@
     }
     .card:hover { transform: translateY(-10px); border-color: var(--accent); }
 
-    .img-container { width: 100%; aspect-ratio: 16/10; background: #000; overflow: hidden; position: relative; }
-    .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
-    .card:hover img { transform: scale(1.1); }
+    /* Grand écran central : la séquence choisie y joue en plein cadre */
+    .ecran {
+      width: min(1040px, 100%); aspect-ratio: 16/9; background: #000;
+      position: relative; overflow: hidden; border-radius: 12px;
+      border: 2px solid #333; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+    /* Le lecteur YouTube remplit tout l'écran, sans exception */
+    .ecran iframe {
+      position: absolute; inset: 0;
+      width: 100% !important; height: 100% !important;
+      border: 0; display: block;
+    }
 
-    /* Zone lecteur vidéo : rapport cinéma 16/9 */
-    .ecran { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
-    .ecran .lecteur { position: absolute; inset: 0; }
-    .ecran .lecteur iframe { width: 100%; height: 100%; border: 0; display: block; }
-
-    /* Masque du haut : cache la barre de titre YouTube ; les clics passent au centre */
+    /* Masque du haut : cache la barre de titre YouTube ; les clics passent par le bouclier */
     .masque-haut {
-      position: absolute; top: 0; left: 0; right: 0; height: 54px;
+      position: absolute; top: 0; left: 0; right: 0; height: 56px;
       background: #000; z-index: 3; pointer-events: none;
     }
     /* Bouclier de clics : la vidéo ne reçoit aucun clic direct */
@@ -73,27 +83,47 @@
       position: absolute; inset: 0; z-index: 6; background: #000;
       display: none; align-items: center; justify-content: center;
       color: var(--accent); font-weight: 900; letter-spacing: 3px;
-      text-transform: uppercase; font-size: 1rem; text-align: center; padding: 10px;
+      text-transform: uppercase; font-size: 1.1rem; text-align: center; padding: 10px;
     }
     .voile-fin.on { display: flex; }
 
-    /* Invitation à cliquer : grand bouton de lecture au centre, tant que la séquence n'a pas démarré */
+    /* Invitation à cliquer : grand bouton de lecture au centre, tant que rien ne joue */
     .invite {
       position: absolute; inset: 0; z-index: 5; pointer-events: none;
       display: flex; align-items: center; justify-content: center;
     }
     .invite .cercle {
-      width: 84px; height: 84px; border-radius: 50%;
+      width: 96px; height: 96px; border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.85); background: rgba(0,0,0,0.45);
       display: flex; align-items: center; justify-content: center;
     }
     .invite .tri {
-      width: 0; height: 0; margin-left: 7px;
-      border-left: 26px solid #fff;
-      border-top: 16px solid transparent;
-      border-bottom: 16px solid transparent;
+      width: 0; height: 0; margin-left: 8px;
+      border-left: 30px solid #fff;
+      border-top: 18px solid transparent;
+      border-bottom: 18px solid transparent;
     }
     .ecran.en-lecture .invite { display: none; }
+
+    /* Rangée des séquences : on choisit laquelle lancer dans le grand écran */
+    .minis {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+      width: min(1040px, 100%);
+    }
+    .mini { cursor: pointer; }
+    .mini .mini-ecran {
+      width: 100%; aspect-ratio: 16/9; background: #000; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mini .mini-tri {
+      width: 0; height: 0; margin-left: 4px;
+      border-left: 18px solid rgba(255,255,255,0.9);
+      border-top: 11px solid transparent;
+      border-bottom: 11px solid transparent;
+    }
+    .mini .card-info { min-height: 52px; padding: 8px 10px; }
+    .mini .seq { color: var(--accent); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 0.85rem; }
+    .mini.actif { border-color: var(--accent); box-shadow: 0 0 25px rgba(255,215,0,0.35); }
 
     .card-info {
       padding: 15px;
@@ -106,13 +136,6 @@
       border-top: 2px solid #333;
     }
     .card b { font-size: 0.9rem; line-height: 1.4; color: #eee; font-weight: 500; }
-
-    /* Carte de jeu (séquence) : plus haute, pas cliquable en entier */
-    .film-card { cursor: default; }
-    .film-card:hover { transform: none; border-color: #333; }
-    .film-card .card-info { min-height: 64px; flex-direction: column; gap: 2px; }
-    .film-card .seq { color: var(--accent); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 0.95rem; }
-    .film-card .genre { color: #bbb; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
     /* Grille des réponses : une colonne par séquence, quatre choix par colonne */
     #answerGrid {
@@ -153,7 +176,16 @@
   </div>
 
   <div class="view-container">
-    <div id="gameGrid" class="grid"></div>
+    <div id="gameArea">
+      <div class="ecran" id="grandEcran">
+        <div id="lecteur"></div>
+        <div class="bouclier" id="bouclierGrand"></div>
+        <div class="masque-haut"></div>
+        <div class="invite"><div class="cercle"><div class="tri"></div></div></div>
+        <div class="voile-fin" id="voileGrand">Fin de la séquence</div>
+      </div>
+      <div class="minis" id="minis"></div>
+    </div>
     <div id="answerWrap">
       <div id="answerGrid" class="grid"></div>
       <div class="bloc-rejouer"><button class="btn-rejouer" onclick="rejouer()">Revoir les séquences</button></div>
@@ -182,123 +214,122 @@
     ];
 
     let cur = 0;
-    const ytPlayers = {};
-    const doneFlags = {};
+    let lecteur = null;
+    let seqCourante = -1;
+    let fini = false;
     let ytReady = false;
     window.onYouTubeIframeAPIReady = function () { ytReady = true; };
 
-    const gameGrid = document.getElementById('gameGrid');
+    const minis = document.getElementById('minis');
     const answerGrid = document.getElementById('answerGrid');
     const catLabel = document.getElementById('catLabel');
     const catTitle = document.getElementById('catTitle');
     const btnToggle = document.getElementById('btnToggle');
+    const grandEcran = document.getElementById('grandEcran');
+    const voileGrand = document.getElementById('voileGrand');
 
-    function detruireLecteurs() {
-      Object.keys(ytPlayers).forEach(function (k) {
-        try { ytPlayers[k].destroy(); } catch (e) {}
-        delete ytPlayers[k];
-        delete doneFlags[k];
-      });
+    function detruireLecteur() {
+      if (lecteur) { try { lecteur.destroy(); } catch (e) {} lecteur = null; }
+      const zone = document.getElementById('lecteur');
+      if (zone) {
+        const nouveau = document.createElement('div');
+        nouveau.id = 'lecteur';
+        zone.replaceWith(nouveau);
+      }
     }
 
     function render() {
-      detruireLecteurs();
+      detruireLecteur();
+      seqCourante = -1;
+      fini = false;
       document.body.classList.remove('reveal');
       btnToggle.textContent = 'VÉRIFIER';
+      grandEcran.classList.remove('en-lecture');
+      voileGrand.classList.remove('on');
       const bloc = BLOCKS[cur];
       catLabel.textContent = 'SÉQUENCE #' + (cur + 1);
       catTitle.textContent = bloc.name;
 
-      gameGrid.innerHTML = bloc.items.map(function (it, i) {
-        return '<div class="card film-card">' +
-          '<div class="ecran">' +
-            '<div class="lecteur" id="lecteur-' + i + '"></div>' +
-            '<div class="bouclier" data-i="' + i + '" title="Lancer la séquence"></div>' +
-            '<div class="masque-haut"></div>' +
-            '<div class="invite"><div class="cercle"><div class="tri"></div></div></div>' +
-            '<div class="voile-fin" id="voile-' + i + '">Fin de la séquence</div>' +
-          '</div>' +
-          '<div class="card-info"><span class="seq">Séquence nº ' + (i + 1) + '</span>' +
-          '<span class="genre">Bande-annonce à identifier</span></div>' +
+      minis.innerHTML = bloc.items.map(function (it, i) {
+        return '<div class="card mini" data-i="' + i + '">' +
+          '<div class="mini-ecran"><div class="mini-tri"></div></div>' +
+          '<div class="card-info"><span class="seq">Séquence nº ' + (i + 1) + '</span></div>' +
         '</div>';
       }).join('');
+      minis.querySelectorAll('.mini').forEach(function (m) {
+        m.addEventListener('click', function () { choisirSequence(parseInt(m.dataset.i, 10)); });
+      });
 
-      const melange = bloc.items.map(function (it, i) {
+      const lignes = [];
+      bloc.items.forEach(function (it, i) {
         const opts = it.choix.concat([it.titre]);
         for (let j = opts.length - 1; j > 0; j--) {
           const k = Math.floor(Math.random() * (j + 1));
           const tmp = opts[j]; opts[j] = opts[k]; opts[k] = tmp;
         }
-        return { film: i, opts: opts };
-      });
-      const lignes = [];
-      melange.forEach(function (m) {
-        m.opts.forEach(function (o) {
-          lignes.push('<div class="card answer-card" data-film="' + m.film + '" data-choix="' + o.replace(/"/g, '&quot;') + '">' +
+        opts.forEach(function (o) {
+          lignes.push('<div class="card answer-card" data-film="' + i + '" data-choix="' + o.replace(/"/g, '&quot;') + '">' +
             '<div class="card-info"><b>' + o + '</b></div></div>');
         });
       });
       answerGrid.innerHTML = lignes.join('');
-
-      gameGrid.querySelectorAll('.bouclier').forEach(function (b) {
-        b.addEventListener('click', function () { basculerLecture(parseInt(b.dataset.i, 10)); });
-      });
       answerGrid.querySelectorAll('.answer-card').forEach(function (c) {
         c.addEventListener('click', function () { choisir(c); });
       });
     }
 
-    function creerLecteur(i) {
-      const bloc = BLOCKS[cur];
-      ytPlayers[i] = new YT.Player('lecteur-' + i, {
-        videoId: bloc.items[i].video,
+    function creerLecteur(videoId) {
+      lecteur = new YT.Player('lecteur', {
+        width: '100%',
+        height: '100%',
+        videoId: videoId,
         playerVars: { autoplay: 1, rel: 0, playsinline: 1, hl: 'fr' },
         events: {
+          onReady: function (e) { try { e.target.playVideo(); } catch (err) {} },
           onStateChange: function (e) {
             if (e.data === YT.PlayerState.ENDED) {
-              doneFlags[i] = true;
-              const v = document.getElementById('voile-' + i);
-              if (v) v.classList.add('on');
+              fini = true;
+              voileGrand.classList.add('on');
             }
           }
         }
       });
     }
 
-    function lancer(i) {
-      const voile = document.getElementById('voile-' + i);
-      if (voile) voile.classList.remove('on');
-      const zone = document.getElementById('lecteur-' + i);
-      if (zone && zone.parentElement) zone.parentElement.classList.add('en-lecture');
-      if (ytPlayers[i]) {
-        ytPlayers[i].seekTo(0, true);
-        ytPlayers[i].playVideo();
+    function choisirSequence(i) {
+      const bloc = BLOCKS[cur];
+      seqCourante = i;
+      fini = false;
+      voileGrand.classList.remove('on');
+      grandEcran.classList.add('en-lecture');
+      minis.querySelectorAll('.mini').forEach(function (m) {
+        m.classList.toggle('actif', parseInt(m.dataset.i, 10) === i);
+      });
+      catLabel.textContent = 'SÉQUENCE Nº ' + (i + 1);
+      if (lecteur) {
+        lecteur.loadVideoById(bloc.items[i].video);
       } else if (ytReady) {
-        creerLecteur(i);
+        creerLecteur(bloc.items[i].video);
       } else {
         const attente = setInterval(function () {
-          if (ytReady) { clearInterval(attente); creerLecteur(i); }
+          if (ytReady) { clearInterval(attente); creerLecteur(bloc.items[seqCourante].video); }
         }, 150);
       }
     }
 
-    function basculerLecture(i) {
-      const p = ytPlayers[i];
-      if (p && typeof p.getPlayerState === 'function') {
-        const etat = p.getPlayerState();
-        const zone = document.getElementById('lecteur-' + i);
-        if (etat === YT.PlayerState.PLAYING) {
-          p.pauseVideo();
-          if (zone && zone.parentElement) zone.parentElement.classList.remove('en-lecture');
-          return;
-        }
-        if (etat === YT.PlayerState.PAUSED) {
-          if (doneFlags[i]) { lancer(i); } else { p.playVideo(); if (zone && zone.parentElement) zone.parentElement.classList.add('en-lecture'); }
-          return;
-        }
+    document.getElementById('bouclierGrand').addEventListener('click', function () {
+      if (seqCourante < 0 || !lecteur) { choisirSequence(seqCourante < 0 ? 0 : seqCourante); return; }
+      const etat = lecteur.getPlayerState();
+      if (etat === YT.PlayerState.PLAYING) {
+        lecteur.pauseVideo();
+        grandEcran.classList.remove('en-lecture');
+      } else if (etat === YT.PlayerState.PAUSED) {
+        if (fini) { choisirSequence(seqCourante); }
+        else { lecteur.playVideo(); grandEcran.classList.add('en-lecture'); }
+      } else if (etat === YT.PlayerState.ENDED || fini) {
+        choisirSequence(seqCourante);
       }
-      lancer(i);
-    }
+    });
 
     function choisir(carte) {
       const bloc = BLOCKS[cur];
@@ -312,16 +343,10 @@
       });
     }
 
-    function arreterTout() {
-      Object.keys(ytPlayers).forEach(function (k) {
-        try { ytPlayers[k].pauseVideo(); } catch (e) {}
-      });
-    }
-
     function toggle() {
       const ouvert = document.body.classList.toggle('reveal');
       btnToggle.textContent = ouvert ? 'RETOUR' : 'VÉRIFIER';
-      if (ouvert) arreterTout();
+      if (ouvert && lecteur) { try { lecteur.pauseVideo(); } catch (e) {} }
     }
 
     function rejouer() {
