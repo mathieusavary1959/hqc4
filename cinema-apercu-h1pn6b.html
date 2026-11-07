@@ -104,10 +104,9 @@
     }
     .ecran.en-lecture .invite { display: none; }
 
-    /* Titre du film, écrit sous l'écran comme sur les cartes de la musique */
+    /* Titre du film, écrit sous l'écran */
     .film-sous-ecran { text-align: center; line-height: 1.15; }
     .film-sous-ecran b { display: block; font-size: 2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-    .film-sous-ecran span { font-size: 0.9rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
 
     /* Cartes des films du thème : on choisit lequel regarder */
     .minis {
@@ -130,7 +129,7 @@
     .card-info {
       padding: 15px;
       background: #222;
-      min-height: 100px;
+      min-height: 64px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -138,8 +137,7 @@
       text-align: center;
       border-top: 2px solid #333;
     }
-    .card-info b { display: block; font-size: 1rem; color: #fff; margin-bottom: 4px; }
-    .card-info span { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .card-info b { display: block; font-size: 1rem; color: #fff; }
 
     /* Badge de l'année, révélé seulement à la vérification, comme dans la musique */
     .year-tag {
@@ -187,7 +185,6 @@
       </div>
       <div class="film-sous-ecran">
         <b id="filmTitre"></b>
-        <span id="filmReal"></span>
       </div>
       <div class="minis" id="minis"></div>
     </div>
@@ -205,10 +202,10 @@
   <script>
     const BLOCKS = [
       { name: "Films québécois", items: [
-        { titre: "Les Boys", realisateur: "Louis Saia", video: "OFl0fuIRl9A", annee: 1997 },
-        { titre: "Lance et compte", realisateur: "Frédérik d'Amours", video: "UaScNFjT6QE", annee: 2010 },
-        { titre: "Bon Cop Bad Cop", realisateur: "Érik Canuel", video: "bhNtnPEImAY", annee: 2006 },
-        { titre: "C.R.A.Z.Y.", realisateur: "Jean-Marc Vallée", video: "N1Dvh3Xh_9k", annee: 2005 }
+        { titre: "Les Boys", video: "dQHhinKxC_0", annee: 1997 },
+        { titre: "Lance et compte", video: "RyDJvM1KDek", annee: 1986 },
+        { titre: "Bon Cop Bad Cop", video: "bhNtnPEImAY", annee: 2006 },
+        { titre: "C.R.A.Z.Y.", video: "N1Dvh3Xh_9k", annee: 2005 }
       ] }
     ];
 
@@ -224,7 +221,6 @@
     const voileGrand = document.getElementById('voileGrand');
     const zoneLecteur = document.getElementById('lecteur');
     const filmTitre = document.getElementById('filmTitre');
-    const filmReal = document.getElementById('filmReal');
 
     function detruireIframe() {
       zoneLecteur.innerHTML = '';
@@ -265,7 +261,6 @@
       const bloc = BLOCKS[cur];
       const film = bloc.items[i];
       filmTitre.textContent = film.titre;
-      filmReal.textContent = film.realisateur;
       minis.querySelectorAll('.mini').forEach(function (m) {
         m.classList.toggle('actif', parseInt(m.dataset.i, 10) === i);
       });
@@ -283,7 +278,7 @@
       minis.innerHTML = bloc.items.map(function (it, i) {
         return '<div class="card mini" data-i="' + i + '">' +
           '<div class="mini-ecran"><div class="mini-tri"></div></div>' +
-          '<div class="card-info"><b>' + it.titre + '</b><span>' + it.realisateur + '</span></div>' +
+          '<div class="card-info"><b>' + it.titre + '</b></div>' +
         '</div>';
       }).join('');
       minis.querySelectorAll('.mini').forEach(function (m) {
@@ -295,7 +290,7 @@
         return '<div class="card answer-card">' +
           '<div class="year-tag">' + it.annee + '</div>' +
           '<div class="rep-ecran"><div class="mini-tri"></div></div>' +
-          '<div class="card-info"><b>' + it.titre + '</b><span>' + it.realisateur + '</span></div>' +
+          '<div class="card-info"><b>' + it.titre + '</b></div>' +
         '</div>';
       }).join('');
 
