@@ -218,7 +218,7 @@
       ] },
       { name: "Blockbusters", items: [
         { titre: "Titanic", video: "WI3KDphHfUs", annee: 1997 },
-        { titre: "E.T. l’extra-terrestre", video: "hWx6_-RgIPA", annee: 1982 },
+        { titre: "E.T. l’extra-terrestre", video: "BfzDf-jG1-8", annee: 1982 },
         { titre: "Jurassic Park", video: "ZEY7iMX_oZs", annee: 1993 },
         { titre: "Retour vers le futur", video: "saCXL-Xfbwk", annee: 1985 }
       ] },
@@ -238,7 +238,7 @@
         { titre: "Speed", video: "GcPZKy719JI", annee: 1994 },
         { titre: "Piège de cristal", video: "ZW6L65zmOME", annee: 1988 },
         { titre: "Mission: Impossible", video: "U0B-4CinrD8", annee: 1996 },
-        { titre: "Terminator 2", video: "iXy0aDCGAtU", annee: 1991 }
+        { titre: "Terminator 2", video: "QYRt2n0DdAQ", annee: 1991 }
       ] }
     ];
 
@@ -266,6 +266,12 @@
       if (typeof e.data !== 'string') return;
       let d = null;
       try { d = JSON.parse(e.data); } catch (err) { return; }
+      if (d && d.event === 'onReady' && e.source) {
+        try {
+          e.source.postMessage(JSON.stringify({ event: 'command', func: 'unloadModule', args: ['captions'], id: 'cinema', channel: 'widget' }), '*');
+        } catch (err) {}
+        return;
+      }
       if (d && d.event === 'onStateChange' && d.info === 0) {
         voileGrand.classList.add('on');
         zoneLecteur.innerHTML = '';
@@ -276,7 +282,7 @@
       detruireIframe();
       const f = document.createElement('iframe');
       f.src = 'https://www.youtube-nocookie.com/embed/' + film.video +
-        '?autoplay=1&rel=0&hl=fr&playsinline=1&enablejsapi=1';
+        '?autoplay=1&rel=0&hl=fr&playsinline=1&enablejsapi=1&cc_load_policy=0';
       f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
       f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
       f.setAttribute('title', '');
