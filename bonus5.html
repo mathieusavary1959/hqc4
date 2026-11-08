@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pionniers+5 - Bonus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #2F9BFF; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: #050505; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header {
+      height: 70px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; background: rgba(10,10,10,0.98);
+      border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 100; box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+    .logo { font-weight: 900; font-size: 1.4rem; text-transform: uppercase; letter-spacing: -1px; }
+    .logo span { color: var(--accent); transition: color 0.4s; }
+    .tabs { display: flex; gap: 40px; }
+    .tab {
+      color: #666; background: none; border: none; font-family: inherit; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; padding: 10px 0; position: relative; text-transform: uppercase; letter-spacing: 1.5px;
+      transition: color 0.3s ease, transform 0.2s ease;
+    }
+    .tab:hover { color: #aaa; transform: translateY(-2px); }
+    .tab[aria-selected="true"] { color: #fff; }
+    .tab[aria-selected="true"]::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
+      background: var(--accent); box-shadow: 0 0 15px var(--accent);
+    }
+    .iframe-container { flex: 1; position: relative; background: #000; }
+    iframe#mainFrame { width: 100%; height: 100%; border: none; transition: opacity 0.5s ease; }
+    #animOverlay { position: fixed; inset: 0; z-index: 300; background: #080809; transition: opacity 0.55s ease; }
+    #animOverlay.fini { opacity: 0; pointer-events: none; }
+    #animOverlay iframe { width: 100%; height: 100%; border: none; display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">PIONNIERS+5 <span>BONUS</span></div>
+    <nav class="tabs">
+      <button class="tab" data-tab="monde" aria-selected="true">Monde contemporain</button>
+      <button class="tab" data-tab="prix" aria-selected="false">Éducation financière</button>
+    </nav>
+  </header>
+  <div class="iframe-container">
+    <iframe id="mainFrame" src="b5-2a89a7-monde.html"></iframe>
+  </div>
+  <div id="animOverlay"><iframe id="animFrame" src="b5-2a89a7-anim-b5-2a89a7-monde.html"></iframe></div>
+  <script>
+    const MATIERES = {
+      monde: { page: 'b5-2a89a7-monde.html', anim: 'b5-2a89a7-anim-b5-2a89a7-monde.html', accent: '#2F9BFF' },
+      prix: { page: 'b5-2a89a7-prix.html', anim: 'b5-2a89a7-anim-ef.html', accent: '#10B981' }
+    };
+    const frame = document.getElementById('mainFrame');
+    const overlay = document.getElementById('animOverlay');
+    const animFrame = document.getElementById('animFrame');
+    const tabs = document.querySelectorAll('.tab');
+    const logoSpan = document.querySelector('.logo span');
+    let matiere = 'monde';
+    let animEnCours = true;
+    let filet = setTimeout(fermerAnim, 8500);
+
+    function fermerAnim() {
+      if (!animEnCours) return;
+      animEnCours = false;
+      clearTimeout(filet);
+      overlay.classList.add('fini');
+      setTimeout(() => { overlay.style.display = 'none'; }, 650);
+    }
+    window.addEventListener('message', (e) => { if (e.data === 'intro-finie') fermerAnim(); });
+
+    function jouerAnim(nom) {
+      animEnCours = true;
+      overlay.style.display = 'block';
+      overlay.classList.remove('fini');
+      animFrame.src = MATIERES[nom].anim;
+      clearTimeout(filet);
+      filet = setTimeout(fermerAnim, 8500);
+    }
+
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        if (t.dataset.tab === matiere) return;
+        matiere = t.dataset.tab;
+        tabs.forEach(b => b.setAttribute('aria-selected', b === t ? 'true' : 'false'));
+        document.documentElement.style.setProperty('--accent', MATIERES[matiere].accent);
+        jouerAnim(matiere);
+        frame.style.opacity = '0';
+        setTimeout(() => {
+          frame.src = MATIERES[matiere].page;
+          frame.onload = () => frame.style.opacity = '1';
+        }, 200);
+      });
+    });
+  </script>
+</body>
+</html>
