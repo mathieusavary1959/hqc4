@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostic du lecteur</title>
+<style>
+  body { background:#0a0a0c; color:#fff; font-family: Arial, sans-serif; margin:0; padding:24px; }
+  h1 { font-size:1.4rem; margin:0 0 6px; }
+  p.consigne { color:#bbb; margin:0 0 18px; max-width:760px; line-height:1.45; }
+  #boite { width:min(860px, 100%); aspect-ratio:16/9; background:#000; margin-bottom:18px; }
+  #boite iframe, #boite > div { width:100%; height:100%; }
+  #journal { background:#16161a; border:1px solid #333; border-radius:10px; padding:16px 18px; max-width:860px; font-size:1.05rem; line-height:1.65; white-space:pre-wrap; }
+  #verdict { margin-top:16px; max-width:860px; font-size:1.25rem; font-weight:bold; background:#1d2b1d; border:1px solid #3f6212; border-radius:10px; padding:14px 18px; display:none; }
+</style>
+</head>
+<body>
+<h1>Diagnostic du lecteur : Intouchables (bande-annonce Gaumont)</h1>
+<p class="consigne">Laisse la vidéo jouer quelques secondes. Le panneau ci-dessous écrit, en direct, ce que le lecteur déclare lui-même : s'il contient des pistes de sous-titres, lesquelles, et si la page arrive à les couper. À la fin, une phrase de verdict s'affiche en vert.</p>
+<div id="boite"></div>
+<div id="journal">Démarrage…</div>
+<div id="verdict"></div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  var journal = document.getElementById('journal');
+  var verdict = document.getElementById('verdict');
+  var lignes = [];
+  function log(txt) {
+    lignes.push(txt);
+    journal.textContent = lignes.join('\n');
+  }
+  function conclure(txt) {
+    verdict.textContent = txt;
+    verdict.style.display = 'block';
+  }
+
+  var apiPrete = false;
+  window.onYouTubeIframeAPIReady = function () {
+    apiPrete = true;
+    log('1. Outil officiel de YouTube : CHARGÉ.');
+    demarrer();
+  };
+  setTimeout(function () {
+    if (!apiPrete) {
+      log('1. Outil officiel de YouTube : NON CHARGÉ après 6 secondes. Le lecteur du jeu retombe alors sur son mode de secours, plus faible.');
+      conclure('VERDICT : l\'outil officiel ne se charge pas dans ce navigateur. C\'est probablement pour ça que la coupure des sous-titres ne s\'applique pas dans le jeu.');
+    }
+  }, 6000);
+
+  function couper(p) {
+    try { p.unloadModule('captions'); log('   Coupure A appliquée (module de sous-titres retiré).'); }
+    catch (e) { log('   Coupure A refusée : ' + e.message); }
+    try { p.setOption('captions', 'track', {}); log('   Coupure B appliquée (piste active vidée).'); }
+    catch (e) { log('   Coupure B refusée : ' + e.message); }
+  }
+
+  function lirePistes(p, moment) {
+    var liste = null, active = null;
+    try { liste = p.getOption('captions', 'tracklist'); } catch (e) { log('   (lecture des pistes impossible : ' + e.message + ')'); }
+    try { active = p.getOption('captions', 'track'); } catch (e) {}
+    if (!liste || !liste.length) {
+      log(moment + ' : le lecteur déclare AUCUNE piste de sous-titres.');
+      return 0;
+    }
+    var noms = liste.map(function (t) {
+      return (t.languageCode || '?') + (t.kind === 'asr' ? ' (automatique)' : '') + (t.displayName ? ' « ' + t.displayName + ' »' : '');
+    });
+    log(moment + ' : pistes déclarées par le lecteur : ' + noms.join(' ; '));
+    var act = active && (active.languageCode || active.displayName);
+    log(moment + ' : piste ACTIVE à l\'écran : ' + (act ? act : 'aucune'));
+    return liste.length;
+  }
+
+  var lecteur = null;
+  function demarrer() {
+    var support = document.createElement('div');
+    document.getElementById('boite').appendChild(support);
+    lecteur = new YT.Player(support, {
+      width: '100%', height: '100%', videoId: 'cXu2MhWYUuE',
+      playerVars: { autoplay: 1, rel: 0, hl: 'fr', playsinline: 1, cc_load_policy: 0 },
+      events: {
+        onReady: function (e) {
+          log('2. Lecteur prêt. Lecture des pistes AVANT coupure :');
+          lirePistes(e.target, '   Avant');
+          log('3. Application des coupures de la page (les mêmes que dans le jeu) :');
+          couper(e.target);
+          e.target.playVideo();
+          setTimeout(function () {
+            log('4. Relecture 2 secondes après les coupures :');
+            var n = lirePistes(lecteur, '   Après');
+            setTimeout(function () {
+              var actif = null;
+              try { actif = lecteur.getOption('captions', 'track'); } catch (e) {}
+              var encore = actif && (actif.languageCode || actif.displayName);
+              if (n === 0) {
+                conclure('VERDICT : le lecteur ne contient AUCUNE piste de sous-titres pour cette vidéo. Si tu vois du texte sur l\'image, il est gravé dans la vidéo elle-même, et aucune page ne peut le retirer : il faudra changer la vidéo.');
+              } else if (encore) {
+                conclure('VERDICT : une piste de sous-titres existe dans le lecteur et ELLE RESTE ACTIVE malgré les coupures de la page : ' + encore + '. Le problème est du côté du lecteur ou du compte, pas des vidéos.');
+              } else {
+                conclure('VERDICT : une piste existait, mais les coupures de la page l\'ont éteinte. Si le jeu affiche quand même des sous-titres sur cette vidéo, ils sont gravés dans l\'image.');
+              }
+            }, 2500);
+          }, 2000);
+        },
+        onStateChange: function (e) {
+          if (e.data === YT.PlayerState.PLAYING) {
+            log('   (La lecture a commencé ; la coupure est réappliquée, comme dans le jeu.)');
+            couper(e.target);
+          }
+        }
+      }
+    });
+  }
+  log('0. Page de diagnostic ouverte. En attente de l\'outil officiel de YouTube…');
+</script>
+</body>
+</html>
