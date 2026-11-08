@@ -196,6 +196,7 @@
     <button class="btn-side" onclick="next()">SUIVANT</button>
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     const BLOCKS = [
       { name: "Films québécois", items: [
@@ -255,7 +256,10 @@
     const zoneLecteur = document.getElementById('lecteur');
     const filmTitre = document.getElementById('filmTitre');
 
+    let lecteurYT = null;
+
     function detruireIframe() {
+      if (lecteurYT) { try { lecteurYT.destroy(); } catch (err) {} lecteurYT = null; }
       zoneLecteur.innerHTML = '';
       grandEcran.classList.remove('en-lecture');
       voileGrand.classList.remove('on');
@@ -278,8 +282,33 @@
       }
     });
 
+    let apiYTPrete = false;
+    window.onYouTubeIframeAPIReady = function () { apiYTPrete = true; };
+
+    function couperSousTitres(p) {
+      try { p.unloadModule('captions'); } catch (err) {}
+      try { p.setOption('captions', 'track', {}); } catch (err) {}
+    }
+
     function lancer(film) {
       detruireIframe();
+      grandEcran.classList.add('en-lecture');
+      if (apiYTPrete && window.YT && YT.Player) {
+        const support = document.createElement('div');
+        zoneLecteur.appendChild(support);
+        lecteurYT = new YT.Player(support, {
+          width: '100%', height: '100%', videoId: film.video,
+          playerVars: { autoplay: 1, rel: 0, hl: 'fr', playsinline: 1, cc_load_policy: 0 },
+          events: {
+            onReady: function (e) { couperSousTitres(e.target); e.target.playVideo(); },
+            onStateChange: function (e) {
+              if (e.data === YT.PlayerState.PLAYING) couperSousTitres(e.target);
+              if (e.data === YT.PlayerState.ENDED) { detruireIframe(); voileGrand.classList.add('on'); }
+            }
+          }
+        });
+        return;
+      }
       const f = document.createElement('iframe');
       f.src = 'https://www.youtube-nocookie.com/embed/' + film.video +
         '?autoplay=1&rel=0&hl=fr&playsinline=1&enablejsapi=1&cc_load_policy=0';
@@ -292,7 +321,6 @@
         } catch (err) {}
       });
       zoneLecteur.appendChild(f);
-      grandEcran.classList.add('en-lecture');
     }
 
     function choisirFilm(i, jouer) {
