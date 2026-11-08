@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cinéma &amp; Hasard - Films québécois</title>
+  <title>Cinéma & Hasard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
 
@@ -142,6 +142,8 @@
       border-top: 1px solid rgba(255,255,255,0.05);
     }
     .card-info b { display: block; font-size: 1rem; color: #fff; }
+    .card-info b.long { font-size: 0.8rem; line-height: 1.15; }
+    .card-info b.treslong { font-size: 0.66rem; line-height: 1.12; }
 
     /* Badge de l'année, révélé seulement à la vérification, comme dans la musique */
     .year-tag {
@@ -201,6 +203,42 @@
         { titre: "Lance et compte", video: "RyDJvM1KDek", annee: 1986 },
         { titre: "Bon Cop Bad Cop", video: "bhNtnPEImAY", annee: 2006 },
         { titre: "C.R.A.Z.Y.", video: "N1Dvh3Xh_9k", annee: 2005 }
+      ] },
+      { name: "Comédies françaises", items: [
+        { titre: "Les Visiteurs", video: "wOMZzFIhPL0", annee: 1993 },
+        { titre: "Intouchables", video: "cXu2MhWYUuE", annee: 2011 },
+        { titre: "Le Dîner de cons", video: "wx0mwd9l93Q", annee: 1998 },
+        { titre: "Le Fabuleux Destin d’Amélie Poulain", video: "FBh0Bt5fmEo", annee: 2001 }
+      ] },
+      { name: "Films d’animation", items: [
+        { titre: "Shrek", video: "NivIUXM5-AU", annee: 2001 },
+        { titre: "Le Roi lion", video: "D6h-RxIP7wM", annee: 1994 },
+        { titre: "Là-haut", video: "p-TdCD6DBfM", annee: 2009 },
+        { titre: "Toy Story", video: "Cb-EW5gwkrk", annee: 1995 }
+      ] },
+      { name: "Blockbusters", items: [
+        { titre: "Titanic", video: "WI3KDphHfUs", annee: 1997 },
+        { titre: "E.T. l’extra-terrestre", video: "hWx6_-RgIPA", annee: 1982 },
+        { titre: "Jurassic Park", video: "ZEY7iMX_oZs", annee: 1993 },
+        { titre: "Retour vers le futur", video: "saCXL-Xfbwk", annee: 1985 }
+      ] },
+      { name: "Super-héros", items: [
+        { titre: "The Dark Knight", video: "UMgb3hQCb08", annee: 2008 },
+        { titre: "X-Men", video: "tYtcWggpGsw", annee: 2000 },
+        { titre: "Avengers", video: "b-kTeJhHOhc", annee: 2012 },
+        { titre: "Spider-Man", video: "OFijO5eH3ok", annee: 2002 }
+      ] },
+      { name: "Grandes sagas", items: [
+        { titre: "Harry Potter à l’école des sorciers", video: "P1BGgqhVGAI", annee: 2001 },
+        { titre: "Star Wars : Un nouvel espoir", video: "HKQgMXvgxsM", annee: 1977 },
+        { titre: "Hunger Games", video: "T_OUuZBWRiE", annee: 2012 },
+        { titre: "Indiana Jones et les Aventuriers de l’Arche Perdue", video: "JdKKkWHx8pQ", annee: 1981 }
+      ] },
+      { name: "Films d’action", items: [
+        { titre: "Speed", video: "GcPZKy719JI", annee: 1994 },
+        { titre: "Piège de cristal", video: "ZW6L65zmOME", annee: 1988 },
+        { titre: "Mission: Impossible", video: "U0B-4CinrD8", annee: 1996 },
+        { titre: "Terminator 2", video: "iXy0aDCGAtU", annee: 1991 }
       ] }
     ];
 
@@ -256,11 +294,14 @@
       const bloc = BLOCKS[cur];
       const film = bloc.items[i];
       filmTitre.textContent = film.titre;
+      filmTitre.style.fontSize = film.titre.length > 30 ? '1.35rem' : '2rem';
       minis.querySelectorAll('.mini').forEach(function (m) {
         m.classList.toggle('actif', parseInt(m.dataset.i, 10) === i);
       });
       if (jouer) lancer(film); else detruireIframe();
     }
+
+    function classeTitre(t) { return t.length > 36 ? 'treslong' : (t.length > 21 ? 'long' : ''); }
 
     function render() {
       detruireIframe();
@@ -273,7 +314,7 @@
       minis.innerHTML = bloc.items.map(function (it, i) {
         return '<div class="card mini" data-i="' + i + '">' +
           '<div class="img-container"><img src="https://i.ytimg.com/vi/' + it.video + '/hqdefault.jpg" alt="" onerror="this.style.display=\'none\'"><div class="mini-tri"></div></div>' +
-          '<div class="card-info"><b>' + it.titre + '</b></div>' +
+          '<div class="card-info"><b class="' + classeTitre(it.titre) + '">' + it.titre + '</b></div>' +
         '</div>';
       }).join('');
       minis.querySelectorAll('.mini').forEach(function (m) {
@@ -285,7 +326,7 @@
         return '<div class="card answer-card">' +
           '<div class="year-tag">' + it.annee + '</div>' +
           '<div class="img-container"><img src="https://i.ytimg.com/vi/' + it.video + '/hqdefault.jpg" alt="" onerror="this.style.display=\'none\'"><div class="mini-tri"></div></div>' +
-          '<div class="card-info"><b>' + it.titre + '</b></div>' +
+          '<div class="card-info"><b class="' + classeTitre(it.titre) + '">' + it.titre + '</b></div>' +
         '</div>';
       }).join('');
 
