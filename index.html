@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pionniers+4 — Quiz Master Bonus</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap" rel="stylesheet">
+  <title>Pionniers+4 - Quiz Master Bonus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #050505;
@@ -60,9 +60,117 @@
     }
     .iframe-container { flex: 1; position: relative; background: #000; }
     iframe { width: 100%; height: 100%; border: none; transition: opacity 0.5s ease; }
+
+    .sous-nav {
+      display: flex; justify-content: center; gap: 10px;
+      padding: 10px 16px; background: rgba(10, 10, 10, 0.98);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08); z-index: 90;
+    }
+    .choix {
+      font-family: inherit; font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #888; background: #141414;
+      border: 1px solid #2c2c2c; border-radius: 999px; padding: 9px 22px; cursor: pointer;
+      transition: all 0.25s ease; position: relative; overflow: hidden;
+    }
+    .choix:hover { color: #ccc; border-color: #444; }
+    .choix::after {
+      content: ''; position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,0.35), transparent);
+      transform: skewX(-20deg); transition: left 0.6s ease;
+    }
+    .choix:hover::after { left: 130%; }
+    .choix[aria-selected="true"] { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 0 18px rgba(229, 9, 20, 0.45); }
+
+    #intro {
+      position: fixed; inset: 0; z-index: 200; background: #080809;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: opacity 0.55s ease;
+    }
+    #intro.fini { opacity: 0; pointer-events: none; }
+    #intro svg { width: 100vw; height: 100vh; display: block; }
+    #intro.attente * { animation-play-state: paused !important; }
+    #intro #halo { opacity: 0; animation: haloIn 0.9s ease-out 0.05s forwards; }
+    @keyframes haloIn { to { opacity: 1; } }
+    #intro .piece { transform-box: fill-box; transform-origin: center; opacity: 0; }
+    @keyframes assemble {
+      0%   { opacity: 0; transform: var(--dep); }
+      10%  { opacity: 1; }
+      74%  { opacity: 1; transform: translate(0px, 0px) rotate(0deg) scale(1.16); }
+      88%  { transform: translate(0px, 0px) rotate(0deg) scale(0.96); }
+      100% { opacity: 1; transform: translate(0px, 0px) rotate(0deg) scale(1); }
+    }
+    #intro #p-haut   { --dep: translate(290px, -260px) rotate(170deg); animation: assemble 0.60s cubic-bezier(.25,.7,.3,1) 0.15s forwards; }
+    #intro #p-bas    { --dep: translate(-270px, 250px) rotate(130deg); animation: assemble 0.60s cubic-bezier(.25,.7,.3,1) 0.30s forwards; }
+    #intro #p-gauche { --dep: translate(-370px, 50px) rotate(-110deg); animation: assemble 0.60s cubic-bezier(.25,.7,.3,1) 0.45s forwards; }
+    #intro #p-droit  { --dep: translate(380px, 80px) rotate(200deg);   animation: assemble 0.60s cubic-bezier(.25,.7,.3,1) 0.58s forwards; }
+    #intro #p-centre { --dep: translate(-320px, -220px) rotate(-150deg); animation: assemble 0.60s cubic-bezier(.25,.7,.3,1) 0.72s forwards; }
+    #intro #plus { transform-box: fill-box; transform-origin: center; animation: pulse 0.34s ease-out 1.42s 1, glisse 0.62s cubic-bezier(.3,.85,.3,1) 1.78s forwards; }
+    @keyframes pulse { 0% { transform: translateX(0) scale(1); } 40% { transform: translateX(0) scale(1.13); } 100% { transform: translateX(0) scale(1); } }
+    @keyframes glisse { from { transform: translateX(0); } to { transform: translateX(238px); } }
+    #intro #plus-tourne { transform-box: fill-box; transform-origin: center; animation: tourne 0.62s cubic-bezier(.3,.85,.3,1) 1.78s forwards; }
+    @keyframes tourne { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    #intro #eclat { transform-box: fill-box; transform-origin: center; opacity: 0; animation: eclatJaillit 0.5s ease-out 2.38s forwards; }
+    @keyframes eclatJaillit { 0% { opacity: 0; transform: scale(0.45); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.55); } }
+    #intro .lettre { font-family: 'Bebas Neue', sans-serif; font-size: 168px; fill: #E50914; opacity: 0; transform-box: fill-box; transform-origin: center; }
+    @keyframes lettreIn { 0% { opacity: 0; transform: translateY(16px) scale(1.14); filter: blur(6px); } 60% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    #intro #l-h { animation: lettreIn 0.48s cubic-bezier(.25,.8,.3,1) 1.78s forwards; }
+    #intro #l-q { animation: lettreIn 0.48s cubic-bezier(.25,.8,.3,1) 1.85s forwards; }
+    #intro #l-c { animation: lettreIn 0.48s cubic-bezier(.25,.8,.3,1) 1.92s forwards; }
+    #intro #l-4 { animation: lettreIn 0.48s cubic-bezier(.25,.8,.3,1) 1.99s forwards; }
+    #intro #ligne { transform-box: fill-box; transform-origin: center; transform: scaleX(0); animation: ligneIn 0.5s cubic-bezier(.3,.85,.3,1) 2.58s forwards; }
+    @keyframes ligneIn { to { transform: scaleX(1); } }
+    #intro #mention { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 9px; fill: #BDBDBD; opacity: 0; animation: mentionIn 0.7s ease-out 2.88s forwards; }
+    @keyframes mentionIn { to { opacity: 0.95; } }
   </style>
 </head>
 <body>
+  <div id="intro" class="attente" title="Cliquer pour passer"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="fondHalo" cx="50%" cy="46%" r="65%">
+      <stop offset="0%" stop-color="#2B2B30"/>
+      <stop offset="55%" stop-color="#131315"/>
+      <stop offset="100%" stop-color="#080809"/>
+    </radialGradient>
+    <linearGradient id="blanc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D8D8D8"/>
+    </linearGradient>
+  </defs>
+
+  <rect id="halo" x="0" y="0" width="1280" height="720" fill="url(#fondHalo)"/>
+
+  <!-- Le signe + assemble au centre (640, 320), carre de 40 -->
+  <g id="plus">
+    <g id="plus-tourne">
+      <rect id="p-centre" class="piece" x="620" y="300" width="40" height="40" fill="url(#blanc)"/>
+      <rect id="p-haut"   class="piece" x="620" y="258" width="40" height="40" fill="url(#blanc)"/>
+      <rect id="p-bas"    class="piece" x="620" y="342" width="40" height="40" fill="url(#blanc)"/>
+      <rect id="p-gauche" class="piece" x="578" y="300" width="40" height="40" fill="url(#blanc)"/>
+      <rect id="p-droit"  class="piece" x="662" y="300" width="40" height="40" fill="url(#blanc)"/>
+    </g>
+  </g>
+
+  <!-- Eclat autour de la place finale du + (centre 878, 320) -->
+  <g id="eclat" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round">
+    <line x1="878" y1="212" x2="878" y2="238"/>
+    <line x1="878" y1="402" x2="878" y2="428"/>
+    <line x1="770" y1="320" x2="796" y2="320"/>
+    <line x1="960" y1="320" x2="986" y2="320"/>
+    <line x1="802" y1="244" x2="820" y2="262"/>
+    <line x1="936" y1="378" x2="954" y2="396"/>
+    <line x1="954" y1="244" x2="936" y2="262"/>
+    <line x1="820" y1="378" x2="802" y2="396"/>
+  </g>
+
+  <!-- HQC4 en rouge, le + blanc vient se coller a droite -->
+  <text id="l-h" class="lettre" x="352" y="392">H</text>
+  <text id="l-q" class="lettre" x="450" y="392">Q</text>
+  <text id="l-c" class="lettre" x="566" y="392">C</text>
+  <text id="l-4" class="lettre" x="668" y="392">4</text>
+
+  <rect id="ligne" x="352" y="438" width="576" height="3" fill="#E50914"/>
+  <text id="mention" x="640" y="498" text-anchor="middle">HISTOIRE DU QUÉBEC ET DU CANADA</text>
+</svg></div>
   <header>
     <div class="logo">PIONNIERS+4 <span>BONUS</span></div>
     <nav class="tabs">
@@ -70,6 +178,10 @@
       <button class="tab" data-tab="evenements">Événements</button>
     </nav>
   </header>
+  <div class="sous-nav" id="sousNav">
+    <button class="choix" data-page="musique" aria-selected="true">Musique &amp; Hasard</button>
+    <button class="choix" data-page="cinema" aria-selected="false">Cinéma &amp; Hasard</button>
+  </div>
   <div class="iframe-container">
     <iframe id="mainFrame" src="musique.html"></iframe>
   </div>
@@ -77,6 +189,24 @@
     const frame = document.getElementById("mainFrame");
     const tabs = document.querySelectorAll(".tab");
     const logoSpan = document.querySelector(".logo span");
+    const sousNav = document.getElementById("sousNav");
+    const choix = document.querySelectorAll(".choix");
+    let sousSection = 'musique';
+    function charger(page) {
+      frame.style.opacity = "0";
+      setTimeout(() => {
+        frame.src = page + ".html";
+        frame.onload = () => frame.style.opacity = "1";
+      }, 200);
+    }
+    choix.forEach(c => {
+      c.addEventListener("click", () => {
+        if (c.dataset.page === sousSection) return;
+        sousSection = c.dataset.page;
+        choix.forEach(b => b.setAttribute("aria-selected", b === c ? "true" : "false"));
+        charger(sousSection);
+      });
+    });
     tabs.forEach(t => {
       t.addEventListener("click", () => {
         tabs.forEach(btn => btn.setAttribute("aria-selected", "false"));
@@ -85,13 +215,29 @@
         const accent = isMusique ? '#e50914' : '#22c55e';
         document.documentElement.style.setProperty('--accent', accent);
         logoSpan.style.color = accent;
-        frame.style.opacity = "0";
-        setTimeout(() => {
-          frame.src = t.dataset.tab + ".html";
-          frame.onload = () => frame.style.opacity = "1";
-        }, 200);
+        sousNav.style.display = isMusique ? 'flex' : 'none';
+        charger(isMusique ? sousSection : 'evenements');
       });
     });
+    const intro = document.getElementById('intro');
+    let introFermee = false;
+    function fermerIntro() {
+      if (introFermee || !intro) return;
+      introFermee = true;
+      intro.classList.add('fini');
+      setTimeout(() => intro.remove(), 650);
+    }
+    intro.addEventListener('click', fermerIntro);
+    let minuteurIntro = setTimeout(fermerIntro, 5300);
+    function demarrerIntro() {
+      if (!intro || introFermee) return;
+      intro.classList.remove('attente');
+      clearTimeout(minuteurIntro);
+      minuteurIntro = setTimeout(fermerIntro, 4100);
+    }
+    if (document.fonts && document.fonts.ready) {
+      Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1200))]).then(demarrerIntro);
+    } else { demarrerIntro(); }
   </script>
 </body>
 </html>
