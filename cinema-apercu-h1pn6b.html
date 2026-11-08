@@ -30,7 +30,7 @@
     .cat-label { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; }
     .cat-title { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; line-height: 1; }
 
-    .view-container { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+    .view-container { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
 
     .grid {
       display: grid;
@@ -40,8 +40,8 @@
 
     /* Zone de jeu : grand écran, titre du film écrit dessous, cartes des films */
     #gameArea {
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      width: 100%; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex; flex-direction: column; align-items: center; gap: 2%;
+      width: 100%; height: 100%; align-self: stretch; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
     body.reveal #gameArea { opacity: 0; pointer-events: none; transform: scale(1.05); }
 
@@ -59,7 +59,7 @@
 
     /* Grand écran central : la bande-annonce y joue en plein cadre */
     .ecran {
-      width: min(880px, 100%, calc((100dvh - 456px) * 16 / 9)); aspect-ratio: 16/9; background: #000;
+      width: min(880px, 100%, calc((100dvh - 210px) * 1.1022)); aspect-ratio: 16/9; max-height: 62%; background: #000;
       position: relative; overflow: hidden; border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       cursor: pointer; flex-shrink: 0; transition: box-shadow 0.3s ease;
@@ -106,13 +106,13 @@
     .ecran.en-lecture .invite { display: none; }
 
     /* Titre du film, écrit sous l'écran */
-    .film-sous-ecran { text-align: center; line-height: 1.15; }
+    .film-sous-ecran { text-align: center; line-height: 1.15; height: 8%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .film-sous-ecran b { display: block; font-size: 2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
 
     /* Cartes des films du thème : on choisit lequel regarder */
     .minis {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
-      width: min(880px, 100%);
+      width: min(880px, 100%); height: 26%; flex-shrink: 0;
     }
     .img-container { width: 100%; aspect-ratio: 16/9; position: relative; background: #000; }
     .img-container img { width: 100%; height: 100%; object-fit: cover; display: block; transition: 0.5s; }
@@ -126,6 +126,9 @@
     }
     .mini .img-container .mini-tri { border-left-width: 16px; border-top-width: 10px; border-bottom-width: 10px; }
     .mini.actif { border-color: var(--accent); box-shadow: 0 0 25px rgba(255, 0, 85, 0.35); }
+    .mini { height: 100%; }
+    .mini .img-container { flex: 1 1 auto; min-height: 0; aspect-ratio: auto; }
+    .mini .card-info { flex: 0 0 25%; min-height: 34px; }
 
     .card-info {
       padding: 15px;
