@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>EF5+ : animation d'ouverture</title>
+<style>
+  
+  html, body { margin: 0; padding: 0; background: #080809; height: 100%; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  svg { width: 100vw; height: 100vh; display: block; }
+
+  #halo { opacity: 0; animation: haloIn 1.0s ease-out 0.05s forwards; }
+  @keyframes haloIn { to { opacity: 1; } }
+
+  .jeton { opacity: 0; }
+  @keyframes chute {
+    0%   { opacity: 0; transform: translateY(var(--chute)) rotate(var(--rot)); }
+    10%  { opacity: 1; }
+    76%  { opacity: 1; transform: translateY(0px) rotate(0deg); }
+    88%  { transform: translateY(-7px) rotate(0deg); }
+    100% { opacity: 1; transform: translateY(0px) rotate(0deg); }
+  }
+  #j0 { --chute: -403px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.15s forwards; }
+  #j1 { --chute: -334px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.25s forwards; }
+  #j2 { --chute: -472px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.35s forwards; }
+  #j3 { --chute: -403px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.45s forwards; }
+  #j4 { --chute: -403px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.55s forwards; }
+  #j5 { --chute: -357px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.65s forwards; }
+  #j6 { --chute: -449px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.75s forwards; }
+  #j7 { --chute: -403px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.85s forwards; }
+  #j8 { --chute: -403px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 0.95s forwards; }
+  #j9 { --chute: -380px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 1.05s forwards; }
+  #j10 { --chute: -426px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 1.15s forwards; }
+  #j11 { --chute: -403px; --rot: -11deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 1.25s forwards; }
+  #j12 { --chute: -403px; --rot: 14deg; animation: chute 0.55s cubic-bezier(.45,.05,.75,.5) 1.35s forwards; }
+
+  #pieces {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fusion 0.45s ease-in 2.42s forwards;
+  }
+  @keyframes fusion {
+    to { transform: scale(0.84); opacity: 0; }
+  }
+  #vraieCroix {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: apparition 0.45s cubic-bezier(.25,.9,.3,1.2) 2.55s forwards;
+  }
+  @keyframes apparition {
+    to { opacity: 1; transform: scale(1); }
+  }
+  #glisse {
+    animation: glisseEF 0.7s cubic-bezier(.3,.85,.3,1) 3.02s forwards;
+  }
+  @keyframes glisseEF {
+    from { transform: translateX(0px); }
+    to   { transform: translateX(112px); }
+  }
+
+  /* UN SEUL eclat, au centre du +, au moment de la fusion : lueur, flash, rayons doux, particules. */
+  #eclat { opacity: 0; animation: eclatGlobal 0.85s ease-out 2.50s forwards; }
+  @keyframes eclatGlobal {
+    0%   { opacity: 0; }
+    18%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  #eclatLueur {
+    transform-box: fill-box; transform-origin: center;
+    animation: lueurGrandit 0.85s ease-out 2.50s forwards;
+    transform: scale(0.5);
+  }
+  @keyframes lueurGrandit { to { transform: scale(1.15); } }
+  #eclatFlash { animation: flashVa 0.4s ease-out 2.50s forwards; opacity: 1; }
+  @keyframes flashVa { to { opacity: 0; } }
+  #eclatRayons {
+    transform-box: fill-box; transform-origin: center;
+    filter: blur(1.4px);
+    transform: scale(0.4);
+    animation: rayonsGrandissent 0.7s ease-out 2.50s forwards;
+  }
+  @keyframes rayonsGrandissent { to { transform: scale(1); } }
+  .particule { opacity: 0; animation: particuleVole 0.75s ease-out 2.52s forwards; }
+  #pt0 { --dx: 97px; --dy: 39px; }
+  #pt1 { --dx: 41px; --dy: 97px; }
+  #pt2 { --dx: -39px; --dy: 97px; }
+  #pt3 { --dx: -97px; --dy: 41px; }
+  #pt4 { --dx: -97px; --dy: -39px; }
+  #pt5 { --dx: -41px; --dy: -97px; }
+  #pt6 { --dx: 39px; --dy: -97px; }
+  #pt7 { --dx: 97px; --dy: -41px; }
+  @keyframes particuleVole {
+    0%   { opacity: 1; transform: translate(0px, 0px); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+  }
+
+  .lettre {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 168px;
+    fill: #10B981;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes lettreIn {
+    from { opacity: 0; transform: translateX(-26px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  #l-0 { animation: lettreIn 0.45s cubic-bezier(.25,.8,.3,1) 3.07s forwards; }
+  #l-1 { animation: lettreIn 0.45s cubic-bezier(.25,.8,.3,1) 3.17s forwards; }
+  #l-2 { animation: lettreIn 0.45s cubic-bezier(.25,.8,.3,1) 3.27s forwards; }
+
+  #ligne {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scaleX(0);
+    animation: ligneIn 0.5s cubic-bezier(.3,.85,.3,1) 3.77s forwards;
+  }
+  @keyframes ligneIn { to { transform: scaleX(1); } }
+
+  #mention {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 9px;
+    fill: #BDBDBD;
+    opacity: 0;
+    animation: mentionIn 0.7s ease-out 4.07s forwards;
+  }
+  @keyframes mentionIn { to { opacity: 0.95; } }
+</style>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+</head>
+<body>
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="fondHalo" cx="50%" cy="46%" r="65%">
+      <stop offset="0%" stop-color="#24352C"/>
+      <stop offset="55%" stop-color="#11150F"/>
+      <stop offset="100%" stop-color="#080809"/>
+    </radialGradient>
+    <radialGradient id="lueurEclat" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="35%" stop-color="#A7F3D0" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+    <path id="formePlus" d="M -11 -40 L 11 -40 L 11 -11 L 40 -11 L 40 11 L 11 11 L 11 40 L -11 40 L -11 11 L -40 11 L -40 -11 L -11 -11 Z"/>
+  </defs>
+
+  <rect id="halo" x="0" y="0" width="1280" height="720" fill="url(#fondHalo)"/>
+
+  <!-- Treize petits montants plats tombent et forment le +, centre aligne sur les lettres (640, 333) -->
+  <g id="pieces">
+    <g id="j0" class="jeton"><circle cx="571" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="571" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j1" class="jeton"><circle cx="640" cy="264" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="264" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j2" class="jeton"><circle cx="640" cy="402" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="402" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j3" class="jeton"><circle cx="709" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="709" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j4" class="jeton"><circle cx="594" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="594" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j5" class="jeton"><circle cx="640" cy="287" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="287" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j6" class="jeton"><circle cx="640" cy="379" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="379" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j7" class="jeton"><circle cx="686" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="686" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j8" class="jeton"><circle cx="617" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="617" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j9" class="jeton"><circle cx="640" cy="310" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="310" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j10" class="jeton"><circle cx="640" cy="356" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="356" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j11" class="jeton"><circle cx="663" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="663" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+    <g id="j12" class="jeton"><circle cx="640" cy="333" r="10.5" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/><circle cx="640" cy="333" r="5" fill="none" stroke="#FFFFFF" stroke-width="1.6" opacity="0.9"/></g>
+  </g>
+
+  <!-- L'unique eclat, au centre du + -->
+  <g transform="translate(640, 333)">
+    <g id="eclat">
+      <circle id="eclatLueur" cx="0" cy="0" r="135" fill="url(#lueurEclat)"/>
+      <g id="eclatRayons" fill="#FFFFFF">
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(0)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(45)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(90)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(135)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(180)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(225)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(270)"/>
+      <path d="M 0 -122 L 5.5 -52 L 0 -42 L -5.5 -52 Z" transform="rotate(315)"/>
+      </g>
+      <circle id="eclatFlash" cx="0" cy="0" r="34" fill="#FFFFFF"/>
+      <circle id="pt0" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt1" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt2" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt3" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt4" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt5" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt6" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+      <circle id="pt7" class="particule" cx="0" cy="0" r="3.2" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <g id="glisse">
+    <g transform="translate(640, 333)">
+      <g id="vraieCroix">
+        <use href="#formePlus" fill="#10B981" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- EF5, entree nette par la gauche ; le + colle et centre sur l'ecriture -->
+  <text id="l-0" class="lettre" x="466" y="392">E</text>
+  <text id="l-1" class="lettre" x="535" y="392">F</text>
+  <text id="l-2" class="lettre" x="601" y="392">5</text>
+
+  <rect id="ligne" x="466" y="446" width="348" height="3" fill="#10B981"/>
+  <text id="mention" x="640" y="506" text-anchor="middle">ÉDUCATION FINANCIÈRE</text>
+</svg>
+<style>
+  body.attente * { animation-play-state: paused !important; }
+</style>
+<script>
+  document.body.classList.add('attente');
+  var envoye = false;
+  function finir() {
+    if (envoye) return; envoye = true;
+    if (window.parent && window.parent !== window) window.parent.postMessage('intro-finie', '*');
+  }
+  function demarrer() {
+    document.body.classList.remove('attente');
+    setTimeout(finir, 5000);
+  }
+  document.addEventListener('click', finir);
+  if (document.fonts && document.fonts.ready) {
+    Promise.race([document.fonts.ready, new Promise(function (r) { setTimeout(r, 1200); })]).then(demarrer);
+  } else { demarrer(); }
+  setTimeout(finir, 8000);
+</script>
+</body>
+</html>
