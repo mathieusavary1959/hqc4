@@ -43,9 +43,11 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
-      width: 100%;
-      max-width: 1400px;
+      /* Largeur aussi bornee par la hauteur de l'ecran : les cartes ne
+         passent plus jamais sous le bandeau du bas (ecran court, zoom fort). */
+      width: min(1400px, 100%, max(300px, calc((100dvh - 322px) * 4 + 60px)));
     }
+
     
     #answerGrid { position: absolute; opacity: 0; pointer-events: none; transform: scale(0.95); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
     body.reveal #gameGrid { opacity: 0; pointer-events: none; transform: scale(1.05); }
@@ -104,6 +106,17 @@
     .btn-side:hover { color: #fff; border-color: #fff; }
     .btn-main { background: #fff; color: #000; border: none; padding: 15px 60px; border-radius: 8px; font-weight: 900; cursor: pointer; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; }
     .btn-main:hover { background: var(--accent); color: #fff; transform: scale(1.05); }
+
+    /* Ecran tres court (fort zoom, petite fenetre) : on compacte le
+       titre et le bas des cartes pour garder des images lisibles,
+       toujours sans rien cacher sous le bandeau du bas. */
+    @media (max-height: 500px) {
+      body { padding-top: 12px; }
+      .cat-title { font-size: 1.8rem; }
+      .header-area { margin-bottom: 8px; }
+      .card-info { min-height: 58px; padding: 8px; }
+      .grid { width: min(1400px, 100%, max(280px, calc((100dvh - 238px) * 4 + 60px))); }
+    }
   </style>
 </head>
 <body>
