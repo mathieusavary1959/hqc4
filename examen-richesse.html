@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Richesse · Examen · Monde contemporain</title>
+<style>
+  :root{
+    --noir:#111111; --gris:#5a5a5a; --ligne:#d8d8d8; --fond:#f4f4f2;
+    --carte:#ffffff; --accent:#111111; --alerte:#9d0208; --ok:#1a6b1a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background:var(--fond); color:var(--noir);
+    font-size:17px; line-height:1.5;
+  }
+  .conteneur{max-width:860px; margin:0 auto; padding:24px 18px 90px;}
+  .petit-caps{letter-spacing:.35em; font-size:12px; text-transform:uppercase; color:var(--gris);}
+  h1.titre-examen{
+    font-size:52px; letter-spacing:.14em; font-weight:800; text-transform:uppercase;
+    line-height:1.05; margin:6px 0 2px;
+  }
+  .sous-titre{letter-spacing:.35em; font-size:13px; text-transform:uppercase; color:var(--gris); margin-bottom:18px;}
+  .filet{border-top:3px solid var(--noir); margin:14px 0 22px;}
+  .carte{
+    background:var(--carte); border:1px solid var(--ligne); border-radius:6px;
+    padding:26px; margin-bottom:20px;
+  }
+  label.champ{display:block; font-weight:600; margin-bottom:6px;}
+  input[type="text"], input[type="password"], select, textarea{
+    width:100%; font-size:17px; padding:12px; border:1.5px solid #bdbdbd; border-radius:4px;
+    font-family:inherit; background:#fff; color:var(--noir);
+  }
+  textarea{min-height:96px; resize:vertical;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--noir); outline-offset:1px;}
+  .bouton{
+    display:inline-block; background:var(--noir); color:#fff; border:none; cursor:pointer;
+    font-size:17px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    padding:14px 28px; border-radius:4px;
+  }
+  .bouton:hover{background:#333;}
+  .bouton:disabled{background:#9a9a9a; cursor:not-allowed;}
+  .bouton.secondaire{background:#fff; color:var(--noir); border:2px solid var(--noir);}
+  .bouton.secondaire:hover{background:#eee;}
+  .erreur{color:var(--alerte); font-weight:600; margin-top:10px; min-height:24px;}
+  /* Barre du haut pendant l'examen */
+  .barre-haut{
+    position:sticky; top:0; z-index:50; background:var(--noir); color:#fff;
+    padding:10px 0; margin-bottom:22px;
+  }
+  .barre-haut .conteneur{padding-top:0; padding-bottom:0; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .barre-haut .nom-examen{font-weight:800; letter-spacing:.18em; text-transform:uppercase; font-size:15px;}
+  .minuteur{font-size:24px; font-weight:800; font-variant-numeric:tabular-nums; margin-left:auto;}
+  .minuteur.urgent{color:#ff6b6b;}
+  .progression{font-size:14px; color:#cfcfcf;}
+  .barre-prog{height:5px; background:#3a3a3a; border-radius:3px; overflow:hidden; flex-basis:100%;}
+  .barre-prog > div{height:100%; background:#fff; width:0%; transition:width .3s;}
+  /* Questions */
+  .titre-partie{font-size:27px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;}
+  .consigne{color:var(--gris); font-style:italic; margin:4px 0 20px;}
+  .question{border-top:1px solid var(--ligne); padding:20px 0 8px;}
+  .question:first-of-type{border-top:none;}
+  .q-num{font-weight:800;}
+  .q-texte{font-weight:600; margin-bottom:12px;}
+  .choix{
+    display:flex; gap:12px; align-items:flex-start; width:100%; text-align:left;
+    background:#fff; border:1.5px solid #c9c9c9; border-radius:5px;
+    padding:12px 14px; margin-bottom:9px; cursor:pointer; font-size:16.5px; font-family:inherit;
+  }
+  .choix:hover{border-color:var(--noir);}
+  .choix.choisi{border-color:var(--noir); background:#ececec; box-shadow:inset 0 0 0 1px var(--noir);}
+  .choix .lettre{
+    font-weight:800; min-width:30px; height:30px; border:1.5px solid var(--noir); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .choix.choisi .lettre{background:var(--noir); color:#fff;}
+  .vf-boutons{display:flex; gap:12px; margin-bottom:10px;}
+  .vf-boutons button{
+    flex:1; padding:13px; font-size:17px; font-weight:700; font-family:inherit; cursor:pointer;
+    background:#fff; border:1.5px solid #c9c9c9; border-radius:5px; letter-spacing:.1em;
+  }
+  .vf-boutons button.choisi{background:var(--noir); color:#fff; border-color:var(--noir);}
+  .situation-texte{
+    background:#f0f0ee; border-left:4px solid var(--noir); padding:16px 18px; margin-bottom:16px;
+  }
+  .assoc-ligne{margin-bottom:16px;}
+  .assoc-ligne select{margin-top:6px;}
+  .nav-partie{display:flex; justify-content:space-between; gap:12px; margin-top:8px;}
+  .revue-ligne{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--ligne);}
+  .revue-ligne .manque{color:var(--alerte); font-weight:700;}
+  .revue-ligne .complet{color:var(--ok); font-weight:700;}
+  .gros-score{font-size:44px; font-weight:800;}
+  .centre{text-align:center;}
+  .cache{display:none !important;}
+  .note-brouillon{color:var(--gris); font-size:14px; margin-top:8px;}
+  @media (max-width:600px){ h1.titre-examen{font-size:36px;} .carte{padding:18px;} }
+</style>
+</head>
+<body>
+
+<!-- ÉCRAN 1 : code d'accès -->
+<div id="ecran-code" class="conteneur">
+  <div class="petit-caps">Monde contemporain · Secondaire 5</div>
+  <h1 class="titre-examen">La Richesse</h1>
+  <div class="sous-titre">Examen 2026-2027</div>
+  <div class="filet"></div>
+  <div class="carte">
+    <label class="champ" for="champ-code">Code d'accès de la classe</label>
+    <input type="password" id="champ-code" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Code à 6 chiffres">
+    <div style="height:14px"></div>
+    <button class="bouton" id="btn-code">Entrer</button>
+    <div class="erreur" id="erreur-code"></div>
+  </div>
+</div>
+
+<!-- ÉCRAN 2 : identification -->
+<div id="ecran-id" class="conteneur cache">
+  <div class="petit-caps">Monde contemporain · Secondaire 5</div>
+  <h1 class="titre-examen">La Richesse</h1>
+  <div class="sous-titre">Examen · Durée : 75 minutes · Total : 60 points</div>
+  <div class="filet"></div>
+  <div class="carte">
+    <label class="champ" for="champ-nom">Ton nom complet</label>
+    <input type="text" id="champ-nom" autocomplete="off" placeholder="Prénom Nom">
+    <div style="height:16px"></div>
+    <label class="champ" for="champ-groupe">Ton groupe</label>
+    <select id="champ-groupe">
+      <option value="">Choisir ton groupe</option>
+      <option>501</option><option>502</option><option>503</option><option>504</option><option>505</option>
+      <option>506</option><option>507</option><option>508</option><option>509</option><option>510</option>
+    </select>
+    <div style="height:20px"></div>
+    <button class="bouton" id="btn-commencer">Commencer l'examen</button>
+    <div class="erreur" id="erreur-id"></div>
+    <div class="note-brouillon cache" id="note-brouillon">Un brouillon d'examen existe sur cet appareil : si c'est le tien, écris exactement le même nom et le même groupe, et tu reprendras où tu étais rendu.</div>
+  </div>
+  <div class="carte">
+    <p><strong>Comment ça marche.</strong> L'examen compte 6 parties, comme sur papier. Les parties A, B et E se corrigent automatiquement à l'envoi. Les parties C, D et F sont corrigées par ton enseignant. Tu peux revenir en arrière en tout temps avant l'envoi final. À la fin du temps, l'examen s'envoie tout seul.</p>
+  </div>
+</div>
+
+<!-- ÉCRAN 3 : examen -->
+<div id="ecran-examen" class="cache">
+  <div class="barre-haut">
+    <div class="conteneur">
+      <span class="nom-examen">La Richesse</span>
+      <span class="progression" id="progression-texte"></span>
+      <span class="minuteur" id="minuteur">75:00</span>
+      <div class="barre-prog"><div id="barre-progression"></div></div>
+    </div>
+  </div>
+  <div class="conteneur">
+    <div id="zone-partie"></div>
+    <div class="nav-partie">
+      <button class="bouton secondaire" id="btn-prec">Partie précédente</button>
+      <button class="bouton" id="btn-suiv">Partie suivante</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN 4 : révision -->
+<div id="ecran-revue" class="conteneur cache">
+  <div class="petit-caps">Monde contemporain · Secondaire 5</div>
+  <h1 class="titre-examen" style="font-size:34px;">Avant l'envoi</h1>
+  <div class="filet"></div>
+  <div class="carte">
+    <div id="revue-contenu"></div>
+    <div style="height:18px"></div>
+    <p>Vérifie qu'il ne te manque rien. Une fois envoyé, l'examen ne peut plus être modifié.</p>
+    <div style="height:14px"></div>
+    <button class="bouton secondaire" id="btn-retour-examen">Retourner à l'examen</button>
+    <button class="bouton" id="btn-envoyer">Envoyer mon examen</button>
+    <div class="erreur" id="erreur-envoi"></div>
+  </div>
+</div>
+
+<!-- ÉCRAN 5 : terminé -->
+<div id="ecran-fini" class="conteneur cache">
+  <div class="petit-caps">Monde contemporain · Secondaire 5</div>
+  <h1 class="titre-examen" style="font-size:34px;">Examen envoyé</h1>
+  <div class="filet"></div>
+  <div class="carte centre">
+    <p>Parties corrigées automatiquement (A, B et E) :</p>
+    <div class="gros-score"><span id="score-auto">0</span> / 32</div>
+    <p id="message-envoi" style="margin-top:10px;">Tes réponses sont bien reçues.</p>
+    <p style="color:var(--gris); margin-top:8px;">Les parties C, D et F seront corrigées par ton enseignant. Note totale à venir : sur 60.</p>
+    <div id="zone-releve" class="cache" style="margin-top:16px;">
+      <p><strong>Important :</strong> télécharge ton relevé et remets le fichier à ton enseignant, comme demandé en classe.</p>
+      <div style="height:10px"></div>
+      <button class="bouton" id="btn-releve">Télécharger mon relevé</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* Configuration de la collecte. Laisser vide = mode relevé (fichier à remettre).
+   Pour activer l'envoi direct : remplir l'adresse du projet et la clé publique (anon). */
+const CONFIG = {
+  supabaseUrl: "",
+  supabaseClePublique: "",
+  table: "examens_resultats",
+  examenId: "richesse-2026-v1"
+};
+/* Empreinte SHA-256 du code d'accès (le même que les portails de la classe). */
+const EMPREINTE_CODE = "68d31642d5ee64f81c7706f66f82a8041540bd682d0318634a45614385a7a322";
+const DONNEES = /*__QUESTIONS__*/ {"meta":{"annee":"Examen 2026-2027","auto_total":32,"duree_min":75,"matiere":"Monde contemporain · Secondaire 5","note_difficulte":"Cible 7-8/10 : raisonnements en deux temps, pièges du manuel (moyenne, croissance contre développement, un seul chiffre), aucune question de vocabulaire seul.","titre":"LA RICHESSE","total":60},"partieA":{"consigne":"Choisis la meilleure réponse. (1 point par question)","points":15,"questions":[{"bonne":1,"chapitre":1,"choix":["Le développement seulement","La croissance seulement","La croissance et le développement","Ni l'un ni l'autre"],"id":"A1","num":1,"q":"Le PIB d'un pays augmente de 6 % en un an, mais presque tout l'argent nouveau va aux 5 % les plus riches. Qu'est-ce qui a vraiment augmenté?"},{"bonne":2,"chapitre":3,"choix":["Elle a raison : une moyenne représente bien tout le monde","Le PIB par habitant ne se calcule pas en divisant par le nombre d'habitants","C'est une moyenne : elle peut cacher une grande pauvreté","10 000 $, c'est un montant trop petit pour tirer une conclusion"],"id":"A2","num":2,"q":"Un pays affiche un PIB par habitant de 10 000 $. Une journaliste conclut que la plupart de ses habitants vivent bien. Quelle est son erreur?"},{"bonne":3,"chapitre":3,"choix":["L'espérance de vie","Le niveau d'éducation","Le revenu par habitant","Le coefficient de Gini"],"id":"A3","num":3,"q":"Lequel de ces éléments ne fait PAS partie de l'IDH?"},{"bonne":0,"chapitre":3,"choix":["Le pays X répartit ses revenus de façon plus égale que le pays Y","Le pays Y est plus riche que le pays X","Le pays X a forcément un meilleur IDH que le pays Y","Le pays Y compte moins d'habitants que le pays X"],"id":"A4","num":4,"q":"Le pays X a un coefficient de Gini de 0,25 et le pays Y, de 0,52. Quelle conclusion est correcte?"},{"bonne":2,"chapitre":2,"choix":["L'aide au développement","Le commerce équitable","Le néocolonialisme : la dépendance qui continue par les entreprises et la finance","La redistribution"],"id":"A5","num":5,"q":"Une multinationale exploite une mine dans un pays pauvre. Les profits repartent vers le siège social, à l'étranger, et le pays ne garde que des emplois mal payés. Ce mécanisme illustre surtout…"},{"bonne":3,"chapitre":5,"choix":["Son IDH grimpe rapidement","Sa dette est automatiquement effacée","Les multinationales s'installent davantage chez lui","L'argent part aux créanciers au lieu d'être investi dans l'éducation, la santé et les infrastructures"],"id":"A6","num":6,"q":"Un pays pauvre consacre 30 % de son budget à payer les intérêts de sa dette. Quelle est la conséquence directe, selon le cours?"},{"bonne":1,"chapitre":3,"choix":["Leurs IDH sont égaux, puisque le revenu est le même","L'IDH du premier pays est plus élevé","Le second pays est plus développé","C'est impossible à dire : l'IDH ne dépend que du revenu"],"id":"A7","num":7,"q":"Deux pays ont le même revenu par habitant. Dans le premier, on vit en moyenne 82 ans et on va longtemps à l'école. Dans le second, on vit 61 ans et l'accès aux soins est faible. Que peut-on prédire?"},{"bonne":0,"chapitre":5,"choix":["À la vente et à la marque, surtout dans le pays industrialisé","À la culture du coton, dans le pays producteur","À la couture, chez l'ouvrier qui fabrique le chandail","La valeur est partagée en parts égales entre les trois"],"id":"A8","num":8,"q":"Un chandail : le coton vaut 2 $, la couture est payée 3 $, et il se vend 60 $ ici. Où se crée la plus grande part de la valeur, et qui la capte?"},{"bonne":3,"chapitre":5,"choix":["Il diversifie son économie dans plusieurs secteurs","Il transforme ses ressources sur place avant de les vendre","Il investit ses revenus dans l'éducation","Il exporte ses ressources à l'état brut et dépend d'une seule ressource"],"id":"A9","num":9,"q":"Un pays possède d'énormes mines, mais reste pauvre. Quelle situation explique le mieux ce paradoxe?"},{"bonne":2,"chapitre":6,"choix":["Une croissance économique trop rapide","Le commerce équitable","L'accès inégal à une éducation de qualité, qui bloque la mobilité sociale","Un coefficient de Gini trop bas"],"id":"A10","num":10,"q":"Dans un pays, les enfants des quartiers pauvres fréquentent des écoles mal financées et se rendent rarement à l'université. Quel mécanisme fige ainsi les inégalités?"},{"bonne":0,"chapitre":7,"choix":["Les revenus élevés paient un pourcentage d'impôt plus élevé","Tout le monde paie exactement le même pourcentage","Seuls les revenus faibles paient de l'impôt","Un impôt qui augmente automatiquement chaque année"],"id":"A11","num":11,"q":"Une fiscalité progressive, c'est…"},{"bonne":3,"chapitre":7,"choix":["Donne de grosses sommes d'argent aux États","Efface la dette des pays pauvres","Remplace les impôts dans les pays riches","Prête de petites sommes à des personnes exclues des banques, pour lancer une activité"],"id":"A12","num":12,"q":"Le microcrédit peut réduire la pauvreté surtout parce qu'il…"},{"bonne":1,"chapitre":8,"choix":["Les habitants du second pays travaillent moins fort","Le contexte change les résultats : corruption, stabilité et qualité des institutions","La mondialisation annule toutes les politiques, partout","Ce n'était pas vraiment la même politique"],"id":"A13","num":13,"q":"La même politique de redistribution donne de bons résultats dans un pays et échoue dans un autre. Quelle est la meilleure explication?"},{"bonne":2,"chapitre":4,"choix":["Rien ne change, puisque le PIB n'a pas monté","Son coefficient de Gini tombe automatiquement à zéro","Son développement s'améliore, même si sa croissance reste modeste","Sa dette extérieure disparaît"],"id":"A14","num":14,"q":"Un pays pauvre investit massivement dans l'éducation et la santé pendant 20 ans, sans forte hausse de son PIB. Quel résultat est le plus probable?"},{"bonne":0,"chapitre":1,"choix":["Elle diminue : les avantages se transmettent et les positions se figent","Elle augmente : il y a plus d'argent en haut","Il n'y a aucun lien entre les deux","Elle dépend uniquement du PIB du pays"],"id":"A15","num":15,"q":"Quand la richesse d'un pays est très concentrée entre quelques mains, quel est l'effet sur la mobilité sociale?"}],"titre":"PARTIE A · CHOIX DE RÉPONSES"},"partieB":{"consigne":"Indique si chaque énoncé est vrai ou faux. (1 point par question)","points":12,"questions":[{"bonne":false,"chapitre":3,"id":"B1","num":16,"q":"Le PIB d'un pays nous dit comment la richesse est partagée dans sa population."},{"bonne":true,"chapitre":3,"id":"B2","num":17,"q":"Deux pays peuvent avoir le même revenu par habitant et des IDH différents."},{"bonne":false,"chapitre":3,"id":"B3","num":18,"q":"Plus le coefficient de Gini est élevé, plus les revenus sont répartis également."},{"bonne":false,"chapitre":2,"id":"B4","num":19,"q":"Le néocolonialisme, c'est quand d'anciennes colonies redeviennent complètement indépendantes et contrôlent toute leur économie."},{"bonne":false,"chapitre":5,"id":"B5","num":20,"q":"Exporter ses ressources à l'état brut rapporte autant que les transformer sur place."},{"bonne":true,"chapitre":5,"id":"B6","num":21,"q":"Dans le budget d'un pays pauvre, les intérêts de la dette peuvent passer avant l'éducation et la santé."},{"bonne":false,"chapitre":5,"id":"B7","num":22,"q":"Un pays riche en pétrole est nécessairement développé pour toute sa population."},{"bonne":true,"chapitre":7,"id":"B8","num":23,"q":"La redistribution prend une partie de la richesse par l'impôt et la retourne en services et en programmes sociaux."},{"bonne":false,"chapitre":3,"id":"B9","num":24,"q":"Le PIB par habitant tient compte de l'économie informelle et de la qualité de vie."},{"bonne":true,"chapitre":8,"id":"B10","num":25,"q":"Les inégalités se transmettent d'une génération à l'autre, entre autres par le patrimoine et les réseaux."},{"bonne":true,"chapitre":7,"id":"B11","num":26,"q":"Le commerce équitable fait partie des solutions, à l'échelle mondiale, pour réduire les inégalités."},{"bonne":true,"chapitre":8,"id":"B12","num":27,"q":"Une politique qui réussit dans un pays peut échouer dans un autre si le contexte et les institutions diffèrent."}],"titre":"PARTIE B · VRAI OU FAUX"},"partieC":{"consigne":"Réponds brièvement. (2 points par question)","points":12,"questions":[{"chapitre":3,"id":"C1","modele":"Le PIB par habitant est une moyenne. Si une minorité très riche tire la moyenne vers le haut, le chiffre peut être élevé pendant que la moitié de la population reste pauvre : la moyenne ne montre pas la répartition.","num":28,"points":2,"q":"Un pays affiche un PIB par habitant de 45 000 $, mais la moitié de sa population vit dans la pauvreté. Explique en deux phrases comment les deux peuvent être vrais en même temps."},{"chapitre":5,"id":"C2","modele":"Avantage : le pays obtient un financement qu'il n'aurait pas autrement (infrastructures, stabilité, projets). Inconvénient : les réformes imposées ont des effets sociaux lourds, car couper les services frappe d'abord les plus pauvres.","num":29,"points":2,"q":"Le FMI prête de l'argent à un pays pauvre, mais exige en retour des coupes dans ses services publics. Donne un avantage et un inconvénient de cette aide."},{"chapitre":2,"id":"C3","modele":"Le pays fournit la matière et la main-d'oeuvre à bas prix, mais la multinationale garde la marque, la vente et les profits, qui sont rapatriés à l'étranger. La valeur ajoutée se fait surtout à la vente, ailleurs.","num":30,"points":2,"q":"Avec l'exemple d'un chandail cousu dans un pays pauvre et vendu ici, explique comment un pays peut produire de la richesse sans en garder les profits."},{"chapitre":7,"id":"C4","modele":"Exemples attendus (deux parmi) : la redistribution par l'impôt, qui retourne la richesse en services et programmes ; la fiscalité progressive, qui demande un effort plus grand aux revenus élevés ; l'investissement en éducation et en santé, qui égalise les chances de départ.","num":31,"points":2,"q":"Donne deux solutions différentes pour réduire les inégalités à l'intérieur d'un pays, et explique en une phrase comment chacune agit."},{"chapitre":6,"id":"C5","modele":"Deux parmi : qualité et financement des écoles, accès aux soins, qualité du logement, services et commerces (épicerie fine contre dépanneur), transport, sécurité, espaces verts.","num":32,"points":2,"q":"Dans une même ville, un quartier favorisé et un quartier défavorisé n'offrent pas les mêmes vies. Nomme deux écarts concrets entre les deux, autres que le revenu des habitants."},{"chapitre":8,"id":"C6","modele":"Deux parmi : les inégalités se transmettent d'une génération à l'autre (éducation, patrimoine, réseaux) ; les capitaux et les entreprises circulent plus vite que les règles des États ; les États manquent souvent d'argent pour agir à la hauteur du problème ; les résultats dépendent du contexte et des institutions.","num":33,"points":2,"q":"Pourquoi dit-on que réduire les inégalités est un travail de longue durée? Donne deux raisons tirées du cours."}],"titre":"PARTIE C · RÉPONSES COURTES"},"partieD":{"consigne":"Réponds à chaque question en justifiant ta réponse. (2 points par question)","points":8,"questions":[{"chapitre":3,"id":"D1","modele":"Point commun : les deux servent à comparer les pays et contiennent une mesure de revenu. Différence : l'IDH ajoute l'espérance de vie et l'éducation, donc il mesure le développement, pas seulement la production moyenne. Choix : l'IDH, parce qu'à revenu égal, il montre lequel transforme sa richesse en conditions de vie.","num":34,"points":2,"q":"Compare le PIB par habitant et l'IDH : donne un point commun et une différence. Ensuite, dis lequel tu choisirais pour comparer deux pays qui ont le même revenu, et pourquoi."},{"chapitre":2,"id":"D2","modele":"Point commun : dans les deux cas, la richesse d'un pays est transférée vers l'extérieur et le pays reste dépendant. Différence : la colonisation est une domination politique directe par une puissance étrangère ; le néocolonialisme passe par les multinationales, la dette et les institutions financières, sans occupation.","num":35,"points":2,"q":"Compare la colonisation et le néocolonialisme : donne un point commun et une différence."},{"chapitre":4,"id":"D3","modele":"Point commun : les deux parlent de l'évolution économique d'un pays et partent de sa production. Différence : la croissance mesure la quantité produite (ici, elle augmente) ; le développement mesure l'amélioration réelle des vies (ici, elle n'a pas lieu pour la majorité). Les politiques publiques font le pont entre les deux.","num":36,"points":2,"q":"Un pays voit son PIB grimper de 6 %, mais l'argent va presque tout à une petite minorité. Compare croissance et développement dans ce cas : donne un point commun et une différence entre les deux notions."},{"chapitre":7,"id":"D4","modele":"Point commun : deux solutions à l'échelle mondiale qui cherchent à réduire les inégalités entre pays. Différence : l'aide est un transfert d'argent ou de ressources, souvent d'État à État, avec parfois des conditions ; le commerce équitable passe par les achats des consommateurs et garantit un meilleur prix directement aux producteurs.","num":37,"points":2,"q":"Compare l'aide au développement et le commerce équitable : donne un point commun et une différence."}],"titre":"PARTIE D · COMPARAISONS"},"partieE":{"consigne":"Associe chaque situation à la bonne solution de droite. (1 point par association)","points":5,"situations":[{"bonne":"D","id":"E1","num":1,"q":"Un pays riche finance la construction d'écoles dans un pays pauvre."},{"bonne":"B","id":"E2","num":2,"q":"Une coopérative prête 300 $ à une couturière pour acheter sa première machine, sans passer par une banque."},{"bonne":"E","id":"E3","num":3,"q":"Les revenus de plus de 100 000 $ sont imposés à 40 %, et ceux de 30 000 $, à 15 %."},{"bonne":"A","id":"E4","num":4,"q":"Un gouvernement utilise l'argent des impôts pour offrir des soins gratuits et des programmes sociaux."},{"bonne":"C","id":"E5","num":5,"q":"Des consommateurs acceptent de payer leur café un peu plus cher pour garantir un revenu décent aux producteurs."}],"sources":{"A":"Redistribution","B":"Microcrédit","C":"Commerce équitable","D":"Aide au développement","E":"Fiscalité progressive"},"titre":"PARTIE E · ASSOCIATION"},"partieF":{"consigne":"Lis chaque situation et réponds aux deux questions.","points":8,"situations":[{"id":"F1","num":39,"questions":[{"id":"F1a","modele":"Riche : son sous-sol contient des ressources de grande valeur, très demandées dans le monde. Pauvre : la valeur ajoutée et les profits partent à l'étranger (ressources exportées brutes, multinationales), et ses revenus sont détournés par le remboursement de la dette au lieu de servir sa population.","num":"39a","points":2,"q":"Explique pourquoi on peut dire que le Congo est riche et pauvre en même temps. Donne deux éléments."},{"id":"F1b","modele":"Deux parmi : transformer les ressources sur place (la valeur ajoutée et les emplois restent au pays) ; diversifier l'économie (moins dépendre d'une seule ressource et de ses prix) ; exiger des redevances plus élevées aux compagnies ; investir les revenus dans l'éducation, la santé et les infrastructures (transformer la richesse en développement).","num":"39b","points":2,"q":"Le gouvernement congolais veut garder plus de valeur dans le pays. Propose deux actions et explique l'effet de chacune."}],"texte":"En République démocratique du Congo, des mineurs extraient le cobalt qui se retrouve dans ton cellulaire, vendu ici autour de 1 000 $. Le Congo reçoit seulement une petite fraction de cette valeur, et une grande partie des revenus du pays part rembourser sa dette extérieure.","titre":"MISE EN SITUATION 1 · La mine de cobalt"},{"id":"F2","num":40,"questions":[{"id":"F2a","modele":"Il n'existe pas de solution magique : la même politique donne des résultats différents selon le contexte, la corruption, la stabilité et la qualité des institutions. Une solution ne vaut que par les conditions de son application.","num":"40a","points":2,"q":"Qu'est-ce que cette comparaison montre sur les solutions aux inégalités?"},{"id":"F2b","modele":"Dans le pays A, la même redistribution a amélioré les écoles : l'outil fonctionne quand il est bien appliqué. Ce qui a échoué dans le pays B, ce n'est pas la redistribution, ce sont les conditions autour (corruption, institutions faibles).","num":"40b","points":2,"q":"Un élève regarde le pays B et conclut : « La redistribution ne sert à rien. » Corrige sa conclusion en deux phrases."}],"texte":"Les pays A et B adoptent exactement la même politique : taxer davantage les hauts revenus pour financer les écoles. Dans le pays A, les écoles s'améliorent nettement. Dans le pays B, une partie de l'argent disparaît dans la corruption et rien ne change pour les élèves.","titre":"MISE EN SITUATION 2 · Deux pays, la même politique"}],"titre":"PARTIE F · MISES EN SITUATION"}};
+
+const $ = (id) => document.getElementById(id);
+const CLE_BROUILLON = "examen_richesse_brouillon_v1";
+const CLE_ENVOYE = "examen_richesse_envoye_v1";
+
+let etat = null; // {nom, groupe, debut, partie, ordreA, choixA, ordreB, ordreE, rep:{A:{},B:{},C:{},D:{},E:{},F:{}}}
+let minuteurId = null;
+let releveObjet = null;
+
+function melanger(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function echapper(t){
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+/* SHA-256 de secours (si crypto.subtle indisponible) */
+function sha256Secours(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const bytes=[]; const s=unescape(encodeURIComponent(ascii));
+  for(let i=0;i<s.length;i++) bytes.push(s.charCodeAt(i));
+  const bitLen=bytes.length*8;
+  bytes.push(0x80);
+  while(bytes.length%64!==56) bytes.push(0);
+  for(let i=7;i>=0;i--) bytes.push((bitLen/Math.pow(2,i*8))&0xff);
+  const w=new Array(64);
+  for(let chunk=0;chunk<bytes.length;chunk+=64){
+    for(let i=0;i<16;i++) w[i]=(bytes[chunk+i*4]<<24)|(bytes[chunk+i*4+1]<<16)|(bytes[chunk+i*4+2]<<8)|bytes[chunk+i*4+3];
+    for(let i=16;i<64;i++){
+      const s0=rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3);
+      const s1=rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
+    }
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const S1=rr(e,6)^rr(e,11)^rr(e,25);
+      const ch=(e&f)^(~e&g);
+      const t1=(h+S1+ch+K[i]+w[i])|0;
+      const S0=rr(a,2)^rr(a,13)^rr(a,22);
+      const mj=(a&b)^(a&c)^(b&c);
+      const t2=(S0+mj)|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;
+    }
+    H=[(H[0]+a)|0,(H[1]+b)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0];
+  }
+  return H.map(x=>("00000000"+(x>>>0).toString(16)).slice(-8)).join("");
+}
+async function sha256Hex(texte){
+  if(window.crypto && crypto.subtle){
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texte));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  return sha256Secours(texte);
+}
+</script>
+<script>
+"use strict";
+const PARTIES = ["A","B","C","D","E","F"];
+const TOTAL_ITEMS = 46;
+
+function montrerEcran(id){
+  ["ecran-code","ecran-id","ecran-examen","ecran-revue","ecran-fini"].forEach(e=>{
+    $(e).classList.toggle("cache", e!==id);
+  });
+  window.scrollTo(0,0);
+}
+function sauvegarder(){
+  if(etat) localStorage.setItem(CLE_BROUILLON, JSON.stringify(etat));
+}
+function brouillon(){
+  try{ return JSON.parse(localStorage.getItem(CLE_BROUILLON)); }catch(e){ return null; }
+}
+function compteRepondues(){
+  if(!etat) return 0;
+  let n = 0;
+  const r = etat.rep;
+  n += Object.keys(r.A).length + Object.keys(r.B).length + Object.keys(r.E).length;
+  ["C","D","F"].forEach(p=>{ Object.values(r[p]).forEach(v=>{ if(String(v).trim().length>0) n++; }); });
+  return n;
+}
+function majProgression(){
+  const n = compteRepondues();
+  $("progression-texte").textContent = n + " / " + TOTAL_ITEMS + " réponses";
+  $("barre-progression").style.width = (100*n/TOTAL_ITEMS) + "%";
+}
+
+/* ---------- Écran code ---------- */
+async function verifierCode(){
+  const saisie = $("champ-code").value.trim();
+  if(!saisie){ $("erreur-code").textContent = "Écris le code donné par ton enseignant."; return; }
+  const h = await sha256Hex(saisie);
+  if(h === EMPREINTE_CODE){
+    $("erreur-code").textContent = "";
+    if(brouillon()) $("note-brouillon").classList.remove("cache");
+    if(localStorage.getItem(CLE_ENVOYE)) { /* l'écran id gère le message */ }
+    montrerEcran("ecran-id");
+    $("champ-nom").focus();
+  } else {
+    $("erreur-code").textContent = "Ce n'est pas le bon code. Vérifie avec ton enseignant.";
+  }
+}
+$("btn-code").addEventListener("click", verifierCode);
+$("champ-code").addEventListener("keydown", e=>{ if(e.key==="Enter") verifierCode(); });
+
+/* ---------- Démarrage ---------- */
+function nouvelEtat(nom, groupe){
+  const qsA = DONNEES.partieA.questions, qsB = DONNEES.partieB.questions, sitE = DONNEES.partieE.situations;
+  const choixA = {};
+  qsA.forEach(q=>{ choixA[q.id] = melanger([0,1,2,3]); });
+  return {
+    nom, groupe, debut: Date.now(), partie: 0,
+    ordreA: melanger(qsA.map((_,i)=>i)), choixA,
+    ordreB: melanger(qsB.map((_,i)=>i)),
+    ordreE: melanger(sitE.map((_,i)=>i)),
+    rep: {A:{}, B:{}, C:{}, D:{}, E:{}, F:{}}
+  };
+}
+$("btn-commencer").addEventListener("click", ()=>{
+  const nom = $("champ-nom").value.trim().replace(/\s+/g," ");
+  const groupe = $("champ-groupe").value;
+  if(nom.length < 3){ $("erreur-id").textContent = "Écris ton nom complet."; return; }
+  if(!groupe){ $("erreur-id").textContent = "Choisis ton groupe."; return; }
+  const envoye = localStorage.getItem(CLE_ENVOYE);
+  if(envoye === nom.toLowerCase() + "|" + groupe){
+    $("erreur-id").textContent = "Cet examen a déjà été envoyé depuis cet appareil pour ce nom. Vois ton enseignant.";
+    return;
+  }
+  $("erreur-id").textContent = "";
+  const b = brouillon();
+  if(b && b.nom.toLowerCase() === nom.toLowerCase() && b.groupe === groupe){
+    etat = b;
+  } else {
+    etat = nouvelEtat(nom, groupe);
+  }
+  sauvegarder();
+  montrerEcran("ecran-examen");
+  demarrerMinuteur();
+  afficherPartie(etat.partie || 0);
+});
+
+function demarrerMinuteur(){
+  if(minuteurId) clearInterval(minuteurId);
+  const duree = DONNEES.meta.duree_min * 60;
+  const tic = ()=>{
+    const ecoule = Math.floor((Date.now() - etat.debut)/1000);
+    const restant = Math.max(0, duree - ecoule);
+    const mm = String(Math.floor(restant/60)).padStart(2,"0");
+    const ss = String(restant%60).padStart(2,"0");
+    $("minuteur").textContent = mm + ":" + ss;
+    $("minuteur").classList.toggle("urgent", restant <= 300);
+    if(restant <= 0){ clearInterval(minuteurId); envoyerExamen(true); }
+  };
+  tic();
+  minuteurId = setInterval(tic, 1000);
+}
+
+/* ---------- Rendu des parties ---------- */
+function entetePartie(titre, consigne){
+  return '<div class="carte"><div class="titre-partie">' + echapper(titre) + '</div>' +
+         '<div class="consigne">' + echapper(consigne) + '</div>';
+}
+function afficherPartie(i){
+  etat.partie = i; sauvegarder();
+  const p = PARTIES[i];
+  const zone = $("zone-partie");
+  if(p==="A") zone.innerHTML = rendreA();
+  if(p==="B") zone.innerHTML = rendreB();
+  if(p==="C") zone.innerHTML = rendreTexte("C", DONNEES.partieC);
+  if(p==="D") zone.innerHTML = rendreTexte("D", DONNEES.partieD);
+  if(p==="E") zone.innerHTML = rendreE();
+  if(p==="F") zone.innerHTML = rendreF();
+  $("btn-prec").disabled = (i===0);
+  $("btn-suiv").textContent = (i===PARTIES.length-1) ? "Révision et envoi" : "Partie suivante";
+  majProgression();
+  window.scrollTo(0,0);
+}
+function rendreA(){
+  let h = entetePartie(DONNEES.partieA.titre, DONNEES.partieA.consigne);
+  etat.ordreA.forEach(idx=>{
+    const q = DONNEES.partieA.questions[idx];
+    h += '<div class="question"><div class="q-texte"><span class="q-num">' + q.num + '.</span> ' + echapper(q.q) + '</div>';
+    etat.choixA[q.id].forEach((orig, pos)=>{
+      const lettre = "ABCD"[pos];
+      const choisi = etat.rep.A[q.id] === orig ? " choisi" : "";
+      h += '<button type="button" class="choix' + choisi + '" data-type="A" data-qid="' + q.id + '" data-orig="' + orig + '">' +
+           '<span class="lettre">' + lettre + '</span><span>' + echapper(q.choix[orig]) + '</span></button>';
+    });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+function rendreB(){
+  let h = entetePartie(DONNEES.partieB.titre, DONNEES.partieB.consigne);
+  etat.ordreB.forEach(idx=>{
+    const q = DONNEES.partieB.questions[idx];
+    const rep = etat.rep.B[q.id];
+    h += '<div class="question"><div class="q-texte"><span class="q-num">' + q.num + '.</span> ' + echapper(q.q) + '</div>' +
+      '<div class="vf-boutons">' +
+      '<button type="button" data-type="B" data-qid="' + q.id + '" data-val="vrai" class="' + (rep===true?"choisi":"") + '">VRAI</button>' +
+      '<button type="button" data-type="B" data-qid="' + q.id + '" data-val="faux" class="' + (rep===false?"choisi":"") + '">FAUX</button>' +
+      '</div></div>';
+  });
+  return h + '</div>';
+}
+function rendreTexte(p, bloc){
+  let h = entetePartie(bloc.titre, bloc.consigne);
+  bloc.questions.forEach(q=>{
+    const val = etat.rep[p][q.id] || "";
+    h += '<div class="question"><div class="q-texte"><span class="q-num">' + q.num + '.</span> ' + echapper(q.q) + '</div>' +
+      '<textarea data-type="' + p + '" data-qid="' + q.id + '" placeholder="Écris ta réponse ici">' + echapper(val) + '</textarea></div>';
+  });
+  return h + '</div>';
+}
+function rendreE(){
+  const bloc = DONNEES.partieE;
+  let h = entetePartie(bloc.titre, bloc.consigne);
+  h += '<div class="question"><div class="q-texte">Solutions possibles</div>';
+  Object.keys(bloc.sources).forEach(L=>{
+    h += '<p><strong>' + L + '.</strong> ' + echapper(bloc.sources[L]) + '</p>';
+  });
+  h += '</div>';
+  etat.ordreE.forEach(idx=>{
+    const s = bloc.situations[idx];
+    const rep = etat.rep.E[s.id] || "";
+    h += '<div class="assoc-ligne"><div class="q-texte"><span class="q-num">' + s.num + '.</span> ' + echapper(s.q) + '</div>' +
+      '<select data-type="E" data-qid="' + s.id + '"><option value="">Choisir la lettre</option>' +
+      Object.keys(bloc.sources).map(L=>'<option value="' + L + '"' + (rep===L?" selected":"") + '>' + L + '. ' + echapper(bloc.sources[L]) + '</option>').join("") +
+      '</select></div>';
+  });
+  return h + '</div>';
+}
+function rendreF(){
+  const bloc = DONNEES.partieF;
+  let h = entetePartie(bloc.titre, bloc.consigne);
+  bloc.situations.forEach(s=>{
+    h += '<div class="petit-caps" style="margin-top:10px;">' + echapper(s.titre) + '</div>' +
+         '<div class="situation-texte">' + echapper(s.texte) + '</div>';
+    s.questions.forEach(q=>{
+      const val = etat.rep.F[q.id] || "";
+      h += '<div class="question"><div class="q-texte"><span class="q-num">' + q.num + '.</span> ' + echapper(q.q) + '</div>' +
+        '<textarea data-type="F" data-qid="' + q.id + '" placeholder="Écris ta réponse ici">' + echapper(val) + '</textarea></div>';
+    });
+  });
+  return h + '</div>';
+}
+
+/* ---------- Saisie des réponses ---------- */
+$("zone-partie").addEventListener("click", e=>{
+  const bA = e.target.closest('button.choix[data-type="A"]');
+  if(bA){
+    etat.rep.A[bA.dataset.qid] = parseInt(bA.dataset.orig, 10);
+    bA.parentElement.querySelectorAll(".choix").forEach(x=>x.classList.remove("choisi"));
+    bA.classList.add("choisi");
+    sauvegarder(); majProgression(); return;
+  }
+  const bB = e.target.closest('.vf-boutons button[data-type="B"]');
+  if(bB){
+    etat.rep.B[bB.dataset.qid] = (bB.dataset.val === "vrai");
+    bB.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("choisi"));
+    bB.classList.add("choisi");
+    sauvegarder(); majProgression();
+  }
+});
+$("zone-partie").addEventListener("input", e=>{
+  const t = e.target;
+  if(t.tagName === "TEXTAREA" && t.dataset.type){
+    etat.rep[t.dataset.type][t.dataset.qid] = t.value;
+    sauvegarder(); majProgression();
+  }
+});
+$("zone-partie").addEventListener("change", e=>{
+  const s = e.target;
+  if(s.tagName === "SELECT" && s.dataset.type === "E"){
+    if(s.value) etat.rep.E[s.dataset.qid] = s.value; else delete etat.rep.E[s.dataset.qid];
+    sauvegarder(); majProgression();
+  }
+});
+
+/* ---------- Navigation ---------- */
+$("btn-prec").addEventListener("click", ()=>{ if(etat.partie>0) afficherPartie(etat.partie-1); });
+$("btn-suiv").addEventListener("click", ()=>{
+  if(etat.partie < PARTIES.length-1) afficherPartie(etat.partie+1);
+  else afficherRevue();
+});
+$("btn-retour-examen").addEventListener("click", ()=>{ montrerEcran("ecran-examen"); afficherPartie(etat.partie); });
+
+/* ---------- Révision ---------- */
+function resumePartie(p){
+  const r = etat.rep; const manquantes = [];
+  let total = 0, faites = 0;
+  const test = (ok, num)=>{ total++; if(ok) faites++; else manquantes.push(num); };
+  if(p==="A") DONNEES.partieA.questions.forEach(q=>test(r.A[q.id]!==undefined, q.num));
+  if(p==="B") DONNEES.partieB.questions.forEach(q=>test(r.B[q.id]!==undefined, q.num));
+  if(p==="C") DONNEES.partieC.questions.forEach(q=>test(String(r.C[q.id]||"").trim().length>0, q.num));
+  if(p==="D") DONNEES.partieD.questions.forEach(q=>test(String(r.D[q.id]||"").trim().length>0, q.num));
+  if(p==="E") DONNEES.partieE.situations.forEach(s=>test(!!r.E[s.id], "situation " + s.num));
+  if(p==="F") DONNEES.partieF.situations.forEach(s=>s.questions.forEach(q=>test(String(r.F[q.id]||"").trim().length>0, q.num)));
+  return {total, faites, manquantes};
+}
+function afficherRevue(){
+  let h = "";
+  PARTIES.forEach((p,i)=>{
+    const bloc = DONNEES["partie"+p];
+    const res = resumePartie(p);
+    h += '<div class="revue-ligne"><span><strong>' + echapper(bloc.titre) + '</strong> : ' + res.faites + ' / ' + res.total + ' répondues</span>' +
+      (res.manquantes.length
+        ? '<span class="manque">Il manque : ' + res.manquantes.join(", ") + ' <button class="bouton secondaire" data-aller="' + i + '" style="padding:6px 12px; font-size:13px;">Y aller</button></span>'
+        : '<span class="complet">Complet</span>') +
+      '</div>';
+  });
+  $("revue-contenu").innerHTML = h;
+  $("revue-contenu").querySelectorAll("[data-aller]").forEach(b=>{
+    b.addEventListener("click", ()=>{ montrerEcran("ecran-examen"); afficherPartie(parseInt(b.dataset.aller,10)); });
+  });
+  montrerEcran("ecran-revue");
+}
+
+/* ---------- Correction automatique et envoi ---------- */
+function corrigerAuto(){
+  let score = 0; const detail = {};
+  DONNEES.partieA.questions.forEach(q=>{ const ok = etat.rep.A[q.id] === q.bonne; detail[q.id] = ok; if(ok) score++; });
+  DONNEES.partieB.questions.forEach(q=>{ const ok = etat.rep.B[q.id] === q.bonne; detail[q.id] = ok; if(ok) score++; });
+  DONNEES.partieE.situations.forEach(s=>{ const ok = etat.rep.E[s.id] === s.bonne; detail[s.id] = ok; if(ok) score++; });
+  return {score, detail};
+}
+$("btn-envoyer").addEventListener("click", ()=>envoyerExamen(false));
+
+async function envoyerExamen(auto){
+  if(minuteurId) clearInterval(minuteurId);
+  const {score, detail} = corrigerAuto();
+  const temps = Math.floor((Date.now() - etat.debut)/1000);
+  releveObjet = {
+    version: CONFIG.examenId, examen: DONNEES.meta.titre,
+    nom: etat.nom, groupe: etat.groupe,
+    date_envoi: new Date().toISOString(), temps_sec: temps,
+    score_auto: score, score_auto_max: DONNEES.meta.auto_total,
+    detail_auto: detail,
+    reponses: etat.rep,
+    envoi_auto_temps_ecoule: !!auto
+  };
+  releveObjet.controle = sha256Secours(JSON.stringify([releveObjet.nom, releveObjet.groupe, releveObjet.score_auto, releveObjet.date_envoi]) + "|RICH2026").slice(0,16);
+
+  let recu = false;
+  if(CONFIG.supabaseUrl && CONFIG.supabaseClePublique){
+    try{
+      const resp = await fetch(CONFIG.supabaseUrl + "/rest/v1/" + CONFIG.table, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": CONFIG.supabaseClePublique,
+          "Authorization": "Bearer " + CONFIG.supabaseClePublique,
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          nom: releveObjet.nom, groupe: releveObjet.groupe, examen: CONFIG.examenId,
+          score_auto: releveObjet.score_auto, reponses: releveObjet
+        })
+      });
+      recu = resp.ok;
+    }catch(e){ recu = false; }
+  }
+  localStorage.setItem(CLE_ENVOYE, etat.nom.toLowerCase() + "|" + etat.groupe);
+  localStorage.removeItem(CLE_BROUILLON);
+  $("score-auto").textContent = score;
+  if(recu){
+    $("message-envoi").textContent = "Tes réponses sont bien reçues par ton enseignant.";
+    $("zone-releve").classList.add("cache");
+  } else {
+    $("message-envoi").textContent = "Ton examen est terminé et corrigé pour les parties automatiques.";
+    $("zone-releve").classList.remove("cache");
+  }
+  montrerEcran("ecran-fini");
+}
+$("btn-releve").addEventListener("click", ()=>{
+  if(!releveObjet) return;
+  const blob = new Blob([JSON.stringify(releveObjet, null, 2)], {type: "application/json"});
+  const a = document.createElement("a");
+  const nomFichier = "richesse-" + releveObjet.nom.toLowerCase().replace(/[^a-z0-9]+/gi,"-") + "-groupe-" + releveObjet.groupe + ".json";
+  a.href = URL.createObjectURL(blob); a.download = nomFichier; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+});
+</script>
+</body>
+</html>
