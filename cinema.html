@@ -164,6 +164,37 @@
     .btn-main { background: #fff; color: #000; border: none; padding: 15px 60px; border-radius: 8px; font-weight: 900; cursor: pointer; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; font-family: inherit; }
     .btn-main:hover { background: var(--accent); color: #fff; transform: scale(1.05); }
 
+    /* Tres grand ecran de classe (TNI 4K) : tout grossit d'un cran.
+       En dessous de 2600 px de large, rien ne change. */
+    @media (min-width: 2600px) {
+      body { padding-bottom: 150px; }
+      .cat-label { font-size: 1.1rem; }
+      .cat-title { font-size: 3.6rem; }
+      .grid { max-width: 2100px; gap: 28px; }
+      .ecran { width: min(1500px, 100%, calc((100dvh - 260px) * 1.1022)); }
+      .minis { width: min(1500px, 100%); gap: 24px; }
+      .film-sous-ecran b { font-size: 3rem; }
+      .card-info { min-height: 120px; }
+      .card-info b { font-size: 1.5rem; }
+      .card-info b.long { font-size: 1.15rem; }
+      .card-info b.treslong { font-size: 0.95rem; }
+      .mini .card-info { min-height: 52px; }
+      .year-tag { font-size: 1.6rem; }
+      .nav-bar { height: 130px; }
+      .btn-main { font-size: 1.5rem; padding: 20px 80px; }
+      .btn-side { font-size: 1.15rem; padding: 16px 34px; }
+    }
+
+    /* Bouton TAILLE de la barre du bas : grossissement manuel, pour
+       n'importe quel ecran. Le choix est memorise sur cet appareil. */
+    body.taille-2 { font-size: 20px; }
+    body.taille-2 .ecran { width: min(1080px, 100%, calc((100dvh - 230px) * 1.16)); }
+    body.taille-2 .minis { width: min(1080px, 100%); }
+    body.taille-3 { font-size: 24px; }
+    body.taille-3 .ecran { width: min(1240px, 100%, calc((100dvh - 250px) * 1.22)); }
+    body.taille-3 .minis { width: min(1240px, 100%); }
+
+
   </style>
 </head>
 <body>
@@ -195,6 +226,7 @@
     <button class="btn-side" onclick="prev()">PRÉCÉDENT</button>
     <button class="btn-main" id="btnToggle" onclick="toggle()">VÉRIFIER</button>
     <button class="btn-side" onclick="next()">SUIVANT</button>
+    <button class="btn-side" id="btnTaille" onclick="tailleSuivante()">TAILLE +</button>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -432,6 +464,23 @@
     function prev() { if (cur > 0) { cur--; render(); } }
 
     render();
+
+    const TAILLES = ['', 'taille-2', 'taille-3'];
+    const TAILLES_TXT = ['TAILLE +', 'TAILLE ++', 'TAILLE normale'];
+    let tailleIdx = 0;
+    try { tailleIdx = parseInt(localStorage.getItem('cinemaTaille') || '0', 10) || 0; } catch (e) {}
+    if (tailleIdx < 0 || tailleIdx > 2) tailleIdx = 0;
+    function appliquerTaille() {
+      document.body.classList.remove('taille-2', 'taille-3');
+      if (TAILLES[tailleIdx]) document.body.classList.add(TAILLES[tailleIdx]);
+      document.getElementById('btnTaille').textContent = TAILLES_TXT[tailleIdx];
+    }
+    function tailleSuivante() {
+      tailleIdx = (tailleIdx + 1) % 3;
+      try { localStorage.setItem('cinemaTaille', String(tailleIdx)); } catch (e) {}
+      appliquerTaille();
+    }
+    appliquerTaille();
   </script>
 
 </body>
