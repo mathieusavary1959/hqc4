@@ -165,7 +165,7 @@
     function charger(page) {
       frame.style.opacity = "0";
       setTimeout(() => {
-        frame.src = page + ".html";
+        frame.src = page === "cinema" ? "cinema.html?v=projection" : page + ".html";
         frame.onload = () => frame.style.opacity = "1";
       }, 200);
     }
