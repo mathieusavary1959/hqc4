@@ -60,7 +60,7 @@
 
     /* Grand écran central : la bande-annonce y joue en plein cadre */
     .ecran {
-      width: min(880px, 100%, calc((100dvh - 210px) * 1.1022)); aspect-ratio: 16/9; max-height: 62%; background: #000;
+      width: min(1500px, 100%, calc((100dvh - 210px) * 1.1022)); aspect-ratio: 16/9; background: #000;
       position: relative; overflow: hidden; border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       cursor: pointer; flex-shrink: 0; transition: box-shadow 0.3s ease;
@@ -113,7 +113,7 @@
     /* Cartes des films du thème : on choisit lequel regarder */
     .minis {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
-      width: min(880px, 100%); height: 26%; flex-shrink: 0;
+      width: min(1500px, 100%); height: 26%; flex-shrink: 0;
     }
     .img-container { width: 100%; aspect-ratio: 16/9; position: relative; background: #000; }
     .img-container img { width: 100%; height: 100%; object-fit: cover; display: block; transition: 0.5s; }
@@ -185,16 +185,64 @@
       .btn-side { font-size: 1.15rem; padding: 16px 34px; }
     }
 
-    /* Bouton TAILLE de la barre du bas : grossissement manuel, pour
-       n'importe quel ecran. Le choix est memorise sur cet appareil. */
-    body.taille-2 { font-size: 20px; }
-    body.taille-2 .ecran { width: min(1080px, 100%, calc((100dvh - 230px) * 1.16)); }
-    body.taille-2 .minis { width: min(1080px, 100%); }
-    body.taille-3 { font-size: 24px; }
-    body.taille-3 .ecran { width: min(1240px, 100%, calc((100dvh - 250px) * 1.22)); }
-    body.taille-3 .minis { width: min(1240px, 100%); }
 
 
+    @media (max-height: 800px) {
+      body { padding: 10px 24px 84px 24px; }
+      .header-area { margin-bottom: 6px; }
+      .cat-label { font-size: 0.7rem; }
+      .cat-title { font-size: 1.6rem; }
+      .ecran { width: min(1500px, 100%, calc((100dvh - 150px) * 1.1022)); }
+      .film-sous-ecran { height: 7%; }
+      .film-sous-ecran b { font-size: 1.3rem; }
+      .minis { height: 22%; }
+      .card-info { padding: 8px; min-height: 56px; }
+      .mini .card-info { min-height: 26px; padding: 4px 6px; }
+      .nav-bar { height: 72px; gap: 16px; }
+      .btn-main { padding: 10px 40px; font-size: 1rem; }
+      .btn-side { padding: 8px 16px; }
+    }
+    @media (max-height: 500px) {
+      body { padding: 6px 16px 68px 16px; }
+      .cat-title { font-size: 1.1rem; }
+      .cat-label { font-size: 0.6rem; }
+      .ecran { width: min(1500px, 100%, calc((100dvh - 110px) * 1.1022)); }
+      .film-sous-ecran { height: 7%; }
+      .film-sous-ecran b { font-size: 0.95rem; }
+      .minis { height: 20%; gap: 8px; }
+      .mini .card-info { min-height: 24px; padding: 2px 4px; }
+      .mini .card-info b { font-size: 0.62rem; }
+      .card-info b.long { font-size: 0.55rem; }
+      .card-info b.treslong { font-size: 0.48rem; }
+      .nav-bar { height: 60px; }
+      .btn-main { padding: 7px 26px; font-size: 0.85rem; }
+      .btn-side { padding: 6px 10px; font-size: 0.75rem; }
+      .masque-haut { height: 30px; }
+      .invite .cercle { width: 52px; height: 52px; }
+    }
+
+    /* ===== MODE PROJECTION =====
+       Des qu'un film joue, la page se reorganise autour de la video :
+       en-tete et cartes de choix disparaissent, l'ecran prend toute la
+       hauteur utile, la barre du bas s'efface pendant la lecture et
+       revient au premier mouvement de souris. Le plein ecran vise la
+       scene (ecran + titre) : le masque du haut reste en place. */
+    #scene { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    body.projection .header-area { display: none; }
+    body.projection .minis { display: none; }
+    body.projection #gameArea { justify-content: center; }
+    body.projection .ecran { width: min(100%, calc((100dvh - 190px) * 1.7778)); }
+    body.projection .film-sous-ecran { height: auto; padding-top: 12px; }
+    #scene:fullscreen { background: #000; justify-content: center; }
+    #scene:fullscreen .ecran { width: min(100vw, calc((100dvh - 76px) * 1.7778)); }
+    #scene:fullscreen .film-sous-ecran { height: auto; padding-top: 14px; }
+    .nav-bar { transition: transform 0.45s ease, opacity 0.45s ease; }
+    body.projection.ui-cachee .nav-bar { transform: translateY(110%); opacity: 0; pointer-events: none; }
+    body.projection.ui-cachee { cursor: none; }
+    .reveil { position: absolute; inset: 0; z-index: 4; display: none; }
+    body.projection.ui-cachee .reveil { display: block; }
+    #btnFilms, #btnPlein { display: none; }
+    body.projection #btnFilms, body.projection #btnPlein { display: inline-block; }
   </style>
 </head>
 <body>
@@ -206,14 +254,17 @@
 
   <div class="view-container">
     <div id="gameArea">
+      <div id="scene">
       <div class="ecran" id="grandEcran">
         <div id="lecteur"></div>
         <div class="masque-haut"></div>
         <div class="invite"><div class="cercle"><div class="tri"></div></div></div>
         <div class="voile-fin" id="voileGrand">Fin de la séquence</div>
+        <div class="reveil" id="reveil"></div>
       </div>
       <div class="film-sous-ecran">
         <b id="filmTitre"></b>
+      </div>
       </div>
       <div class="minis" id="minis"></div>
     </div>
@@ -226,7 +277,8 @@
     <button class="btn-side" onclick="prev()">PRÉCÉDENT</button>
     <button class="btn-main" id="btnToggle" onclick="toggle()">VÉRIFIER</button>
     <button class="btn-side" onclick="next()">SUIVANT</button>
-    <button class="btn-side" id="btnTaille" onclick="tailleSuivante()">TAILLE +</button>
+    <button class="btn-side" id="btnFilms" onclick="retourChoix()">AUTRES FILMS</button>
+    <button class="btn-side" id="btnPlein" onclick="pleinEcran()">PLEIN ÉCRAN</button>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -338,6 +390,7 @@
     const filmTitre = document.getElementById('filmTitre');
 
     let lecteurYT = null;
+    let minuteurUI = null;
 
     function detruireIframe() {
       if (lecteurYT) { try { lecteurYT.destroy(); } catch (err) {} lecteurYT = null; }
@@ -360,6 +413,7 @@
       if (d && d.event === 'onStateChange' && d.info === 0) {
         voileGrand.classList.add('on');
         zoneLecteur.innerHTML = '';
+        document.body.classList.remove('ui-cachee');
       }
     });
 
@@ -373,18 +427,19 @@
 
     function lancer(film) {
       detruireIframe();
+      entrerProjection();
       grandEcran.classList.add('en-lecture');
       if (apiYTPrete && window.YT && YT.Player) {
         const support = document.createElement('div');
         zoneLecteur.appendChild(support);
         lecteurYT = new YT.Player(support, {
           width: '100%', height: '100%', videoId: film.video,
-          playerVars: { autoplay: 1, rel: 0, hl: 'fr', playsinline: 1, cc_load_policy: 0 },
+          playerVars: { autoplay: 1, rel: 0, hl: 'fr', playsinline: 1, cc_load_policy: 0, fs: 0 },
           events: {
             onReady: function (e) { couperSousTitres(e.target); e.target.playVideo(); },
             onStateChange: function (e) {
               if (e.data === YT.PlayerState.PLAYING) couperSousTitres(e.target);
-              if (e.data === YT.PlayerState.ENDED) { detruireIframe(); voileGrand.classList.add('on'); }
+              if (e.data === YT.PlayerState.ENDED) { detruireIframe(); voileGrand.classList.add('on'); afficherUI(); }
             }
           }
         });
@@ -392,7 +447,7 @@
       }
       const f = document.createElement('iframe');
       f.src = 'https://www.youtube-nocookie.com/embed/' + film.video +
-        '?autoplay=1&rel=0&hl=fr&playsinline=1&enablejsapi=1&cc_load_policy=0';
+        '?autoplay=1&rel=0&hl=fr&playsinline=1&enablejsapi=1&cc_load_policy=0&fs=0';
       f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
       f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
       f.setAttribute('title', '');
@@ -420,6 +475,7 @@
 
     function render() {
       detruireIframe();
+      sortirProjection();
       document.body.classList.remove('reveal');
       btnToggle.textContent = 'VÉRIFIER';
       const bloc = BLOCKS[cur];
@@ -457,7 +513,11 @@
     function toggle() {
       const ouvert = document.body.classList.toggle('reveal');
       btnToggle.textContent = ouvert ? 'RETOUR' : 'VÉRIFIER';
-      if (ouvert) detruireIframe();
+      if (ouvert) {
+        detruireIframe();
+        sortirProjection();
+        if (document.fullscreenElement) document.exitFullscreen();
+      }
     }
 
     function next() { if (cur < BLOCKS.length - 1) { cur++; render(); } }
@@ -465,22 +525,44 @@
 
     render();
 
-    const TAILLES = ['', 'taille-2', 'taille-3'];
-    const TAILLES_TXT = ['TAILLE +', 'TAILLE ++', 'TAILLE normale'];
-    let tailleIdx = 0;
-    try { tailleIdx = parseInt(localStorage.getItem('cinemaTaille') || '0', 10) || 0; } catch (e) {}
-    if (tailleIdx < 0 || tailleIdx > 2) tailleIdx = 0;
-    function appliquerTaille() {
-      document.body.classList.remove('taille-2', 'taille-3');
-      if (TAILLES[tailleIdx]) document.body.classList.add(TAILLES[tailleIdx]);
-      document.getElementById('btnTaille').textContent = TAILLES_TXT[tailleIdx];
+    /* ===== Mode projection : entree, sortie, interface qui s'efface, plein ecran ===== */
+    function entrerProjection() {
+      document.body.classList.add('projection');
+      afficherUI();
     }
-    function tailleSuivante() {
-      tailleIdx = (tailleIdx + 1) % 3;
-      try { localStorage.setItem('cinemaTaille', String(tailleIdx)); } catch (e) {}
-      appliquerTaille();
+    function sortirProjection() {
+      document.body.classList.remove('projection', 'ui-cachee');
+      if (minuteurUI) { clearTimeout(minuteurUI); minuteurUI = null; }
     }
-    appliquerTaille();
+    function retourChoix() {
+      detruireIframe();
+      sortirProjection();
+      if (document.fullscreenElement) document.exitFullscreen();
+    }
+    function afficherUI() {
+      document.body.classList.remove('ui-cachee');
+      if (minuteurUI) clearTimeout(minuteurUI);
+      if (!document.body.classList.contains('projection')) return;
+      minuteurUI = setTimeout(function () {
+        if (grandEcran.classList.contains('en-lecture') && !voileGrand.classList.contains('on')) {
+          document.body.classList.add('ui-cachee');
+        }
+      }, 2800);
+    }
+    window.addEventListener('mousemove', function () {
+      if (document.body.classList.contains('projection')) afficherUI();
+    });
+    window.addEventListener('click', function () {
+      if (document.body.classList.contains('projection')) afficherUI();
+    });
+    function pleinEcran() {
+      const scene = document.getElementById('scene');
+      if (document.fullscreenElement) { document.exitFullscreen(); return; }
+      if (scene && scene.requestFullscreen) {
+        const p = scene.requestFullscreen();
+        if (p && p.catch) p.catch(function () {});
+      }
+    }
   </script>
 
 </body>
