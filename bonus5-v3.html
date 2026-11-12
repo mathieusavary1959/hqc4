@@ -33,7 +33,22 @@
     .ecran-intro { position: fixed; inset: 0; z-index: 300; display: none !important; opacity: 1; transition: opacity 0.55s ease; }
     .ecran-intro.actif { display: block !important; }
     .ecran-intro.ferme { opacity: 0; pointer-events: none; }
-  </style>
+  
+    /* Intro Milliardaires : titre or, barres de fortune qui montent */
+    .milli-intro { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 20px; text-align: center; }
+    .mi-sur { color: #aeb7bf; font-family: 'Work Sans', sans-serif; font-weight: 700; letter-spacing: 5px; font-size: clamp(12px, 1.6vw, 18px); text-transform: uppercase; animation: miMontee 0.7s ease both; }
+    .mi-titre { font-family: 'Bebas Neue', sans-serif; color: #F0B429; font-size: clamp(52px, 11vw, 150px); line-height: 0.95; letter-spacing: 3px; animation: miMontee 0.7s ease 0.15s both; text-shadow: 0 14px 44px rgba(240,180,41,0.35); }
+    .mi-barres { display: flex; align-items: flex-end; gap: 10px; height: 74px; }
+    .mi-barres span { display: block; width: clamp(20px, 3.4vw, 40px); background: linear-gradient(180deg, #FFD34D, #E8A317); border-radius: 5px 5px 0 0; animation: miBarre 0.8s cubic-bezier(.25,.8,.3,1) both; }
+    .mi-barres span:nth-child(1) { height: 22%; animation-delay: 0.35s; }
+    .mi-barres span:nth-child(2) { height: 40%; animation-delay: 0.47s; }
+    .mi-barres span:nth-child(3) { height: 58%; animation-delay: 0.59s; }
+    .mi-barres span:nth-child(4) { height: 78%; animation-delay: 0.71s; }
+    .mi-barres span:nth-child(5) { height: 100%; animation-delay: 0.83s; }
+    .mi-sous { color: #fff; font-family: 'Work Sans', sans-serif; font-weight: 800; letter-spacing: 4px; font-size: clamp(13px, 2vw, 22px); text-transform: uppercase; animation: miMontee 0.7s ease 1s both; }
+    @keyframes miMontee { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes miBarre { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); transform-origin: bottom; } }
+</style>
 </head>
 <body>
   <header>
@@ -41,6 +56,7 @@
     <nav class="tabs">
       <button class="tab" data-tab="monde" aria-selected="true">Monde contemporain</button>
       <button class="tab" data-tab="prix" aria-selected="false">Éducation financière</button>
+      <button class="tab" data-tab="milli" aria-selected="false">Milliardaires</button>
     </nav>
   </header>
   <div class="iframe-container">
@@ -519,9 +535,16 @@ to {
   <rect id="ae-ligne" x="466" y="446" width="348" height="3" fill="#10B981"/>
   <text id="ae-mention" x="640" y="506" text-anchor="middle">ÉDUCATION FINANCIÈRE</text>
 </svg></div>
+
+  <div class="ecran-intro" id="intro-milli"><div class="milli-intro">
+    <div class="mi-sur">Bonus · Thème Richesse</div>
+    <div class="mi-titre">MILLIARDAIRES</div>
+    <div class="mi-barres"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="mi-sous">Le classement Forbes</div>
+  </div></div>
   <script>
-    const PAGES = { monde: 'b5v3-monde.html', prix: 'b5v3-prix.html' };
-    const ACCENTS = { monde: '#2F9BFF', prix: '#10B981' };
+    const PAGES = { monde: 'b5v3-monde.html', prix: 'b5v3-prix.html', milli: 'b5v3-milliardaires.html' };
+    const ACCENTS = { monde: '#2F9BFF', prix: '#10B981', milli: '#F0B429' };
     const frame = document.getElementById('mainFrame');
     const tabs = document.querySelectorAll('.tab');
     let matiere = 'monde';
@@ -560,7 +583,7 @@ to {
         matiere = t.dataset.tab;
         tabs.forEach(b => b.setAttribute('aria-selected', b === t ? 'true' : 'false'));
         document.documentElement.style.setProperty('--accent', ACCENTS[matiere]);
-        ouvrirIntro(matiere === 'monde' ? 'intro-monde' : 'intro-ef');
+        ouvrirIntro(matiere === 'monde' ? 'intro-monde' : matiere === 'prix' ? 'intro-ef' : 'intro-milli');
         frame.style.opacity = '0';
         setTimeout(() => {
           frame.src = PAGES[matiere];
